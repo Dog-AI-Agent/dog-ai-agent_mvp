@@ -22,11 +22,19 @@ from PIL import Image
 async def lifespan(app: FastAPI):
     # Startup: preload models
     print("Loading AI models...")
-    from breed_classifier import _load_resources
-    _load_resources()
-    from dog_detector import load_model
-    load_model()
-    print("AI models loaded.")
+    try:
+        from savetojson import _load_resources
+        _load_resources()
+        print("✅ 품종 분류 모델 로딩 완료")
+    except Exception as e:
+        print(f"⚠️  품종 분류 모델 로딩 실패 (model_1.h5 없음): {e}")
+        print("   → ai-service/breed/trained_models/model_1.h5 파일을 추가하면 정상 작동합니다.")
+    try:
+        from dog_detector import load_model
+        load_model()
+        print("✅ 강아지 감지 모델 로딩 완료")
+    except Exception as e:
+        print(f"⚠️  강아지 감지 모델 로딩 실패: {e}")
     yield
 
 
@@ -45,7 +53,18 @@ async def detect_and_classify(file: UploadFile = File(...)):
     contents = await file.read()
 
     # Dog detection
-    from dog_detector import is_dog_from_bytes
+    try:
+        from dog_detector import is_dog_from_bytes
+    except Exception as e:
+        raise HTTPException(status_code=503, detail="강아지 감지 모델이 로드되지 않았습니다. 서버 로그를 확인하세요.")
+
+    # Breed model check
+    try:
+        from savetojson import _load_resources as _check
+        _check()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"model_1.h5 파일이 없습니다. ai-service/breed/trained_models/model_1.h5 를 추가해주세요.")
+
     start = time.time()
 
     try:

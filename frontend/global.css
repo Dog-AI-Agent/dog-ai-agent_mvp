@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 웹 전체 배경 */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #e8eaf0;
+}
+
+/* 웹에서 스크롤바 숨김 (앱처럼 보이도록) */
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
