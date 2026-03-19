@@ -1,3 +1,7 @@
+// ============================================================
+// S5 — 레시피 상세
+// 스토리보드: 제목 + 유전병 태그 + 4열 메타 + 재료 체크리스트 + 조리 단계
+// ============================================================
 import { useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,6 +14,17 @@ import { parseRecipeDetail } from "../utils/parseSummary";
 import type { RecipeDetailResponse } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeDetail">;
+
+const MetaItem = ({ label, value, icon }: { label: string; value: string; icon: string }) => (
+  <View className="flex-1 min-w-[22%] items-center rounded-xl bg-card px-2 py-3">
+    <Text className="text-lg">{icon}</Text>
+    <Text className="mt-1 text-center text-xs text-muted">{label}</Text>
+    <Text className="text-center text-sm font-semibold text-gray-800">{value}</Text>
+  </View>
+);
+
+const difficultyLabel = (d?: string | null) =>
+  d === "easy" ? "쉬움" : d === "medium" ? "보통" : d === "hard" ? "어려움" : "—";
 
 const RecipeDetailScreen = ({ navigation, route }: Props) => {
   const { recipeId, breedId } = route.params;
@@ -31,8 +46,7 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
   const toggleIngredient = (idx: number) => {
     setChecked((prev) => {
       const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
+      next.has(idx) ? next.delete(idx) : next.add(idx);
       return next;
     });
   };
@@ -49,6 +63,12 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
     return (
       <SafeAreaView className="flex-1 bg-white px-6 justify-center">
         <ErrorState message={error} />
+        <Pressable
+          className="mt-4 rounded-xl bg-gray-100 px-6 py-3 active:opacity-80"
+          onPress={() => navigation.goBack()}
+        >
+          <Text className="text-center font-semibold text-muted">뒤로가기</Text>
+        </Pressable>
       </SafeAreaView>
     );
   }
@@ -59,118 +79,87 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView contentContainerClassName="px-6 py-4 gap-4">
-        <Text className="text-center text-2xl font-bold text-gray-800">
-          {recipe.title}
-        </Text>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 제목 + 대상 유전병 태그 */}
+        <View className="gap-2">
+          <Text className="text-center text-2xl font-bold text-gray-800">
+            {recipe.title}
+          </Text>
+          {recipe.target_diseases.length > 0 && (
+            <View className="flex-row flex-wrap justify-center gap-1.5">
+              {recipe.target_diseases.map((d, i) => (
+                <View key={i} className="rounded-full bg-risk-high px-3 py-1">
+                  <Text className="text-xs font-medium text-risk-high-text">{d}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
 
-        {/* LLM Detail */}
-        {detail && (
-          <View className="gap-3">
-            {!!detail.message && (
-              <View className="rounded-xl bg-blue-50 px-4 py-4">
-                <Text className="text-sm leading-5 text-gray-700">
-                  {detail.message}
-                </Text>
-              </View>
-            )}
+        {/* 메타 정보 4열 그리드 — 스토리보드 S5 */}
+        <View className="flex-row gap-2">
+          <MetaItem
+            icon="⏱"
+            label="조리시간"
+            value={recipe.cook_time_min != null ? `${recipe.cook_time_min}분` : "—"}
+          />
+          <MetaItem
+            icon="🔥"
+            label="칼로리"
+            value={recipe.calories_per_serving != null ? `${recipe.calories_per_serving}` : "—"}
+          />
+          <MetaItem
+            icon="📊"
+            label="난이도"
+            value={difficultyLabel(recipe.difficulty)}
+          />
+          <MetaItem
+            icon="🍽"
+            label="인분"
+            value={`${recipe.servings}인분`}
+          />
+        </View>
 
-            {detail.ingredientDetails.length > 0 && (
-              <View className="gap-2">
-                <Text className="text-lg font-bold text-gray-800">
-                  재료별 효능
-                </Text>
-                {detail.ingredientDetails.map((ing, idx) => (
-                  <View key={idx} className="rounded-xl bg-card px-4 py-4 gap-2">
-                    <View className="flex-row items-center gap-3">
-                      <View className="h-7 w-7 items-center justify-center rounded-full bg-primary">
-                        <Text className="text-xs font-bold text-white">
-                          {idx + 1}
-                        </Text>
-                      </View>
-                      <Text className="text-base font-semibold text-gray-800">
-                        {ing.name}
-                      </Text>
-                    </View>
-                    {ing.explanations.length > 0 && (
-                      <View className="ml-10 gap-1">
-                        {ing.explanations.map((exp, ei) => (
-                          <Text key={ei} className="text-sm text-gray-600">
-                            • {exp}
-                          </Text>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {!!detail.closing && (
-              <View className="rounded-xl bg-green-50 px-4 py-4">
-                <Text className="mb-1 text-xs font-bold text-green-700">
-                  급여 안내
-                </Text>
-                <Text className="text-sm text-gray-700">{detail.closing}</Text>
-              </View>
-            )}
+        {/* LLM 상세 설명 (있을 경우) */}
+        {detail?.message && (
+          <View className="rounded-xl bg-primary-light px-4 py-4">
+            <Text className="text-sm leading-5 text-gray-700">{detail.message}</Text>
           </View>
         )}
 
-        {/* Description */}
+        {/* 재료별 효능 (LLM) */}
+        {detail && detail.ingredientDetails.length > 0 && (
+          <View className="gap-2">
+            <Text className="text-lg font-bold text-gray-800">재료별 효능</Text>
+            {detail.ingredientDetails.map((ing, idx) => (
+              <View key={idx} className="rounded-xl bg-card px-4 py-3 gap-1">
+                <Text className="text-sm font-semibold text-gray-800">
+                  {idx + 1}. {ing.name}
+                </Text>
+                {ing.explanations.map((exp, ei) => (
+                  <Text key={ei} className="ml-4 text-xs text-muted">• {exp}</Text>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {detail?.closing && (
+          <View className="rounded-xl bg-green-50 px-4 py-3">
+            <Text className="text-xs font-bold text-green-700">급여 안내</Text>
+            <Text className="mt-1 text-sm text-gray-700">{detail.closing}</Text>
+          </View>
+        )}
+
+        {/* 설명 */}
         {recipe.description && (
           <Text className="text-sm text-muted">{recipe.description}</Text>
         )}
 
-        {/* Info grid */}
-        <View className="flex-row flex-wrap gap-2">
-          {recipe.calories_per_serving != null && (
-            <View className="flex-1 min-w-[45%] rounded-xl bg-card px-3 py-3 items-center">
-              <Text className="text-xs text-muted">칼로리</Text>
-              <Text className="text-base font-semibold text-gray-800">
-                {recipe.calories_per_serving} kcal
-              </Text>
-            </View>
-          )}
-          {recipe.cook_time_min != null && (
-            <View className="flex-1 min-w-[45%] rounded-xl bg-card px-3 py-3 items-center">
-              <Text className="text-xs text-muted">조리 시간</Text>
-              <Text className="text-base font-semibold text-gray-800">
-                {recipe.cook_time_min}분
-              </Text>
-            </View>
-          )}
-          {recipe.difficulty && (
-            <View className="flex-1 min-w-[45%] rounded-xl bg-card px-3 py-3 items-center">
-              <Text className="text-xs text-muted">난이도</Text>
-              <Text className="text-base font-semibold text-gray-800">
-                {recipe.difficulty}
-              </Text>
-            </View>
-          )}
-          <View className="flex-1 min-w-[45%] rounded-xl bg-card px-3 py-3 items-center">
-            <Text className="text-xs text-muted">인분</Text>
-            <Text className="text-base font-semibold text-gray-800">
-              {recipe.servings}인분
-            </Text>
-          </View>
-        </View>
-
-        {/* Target diseases */}
-        {recipe.target_diseases.length > 0 && (
-          <View className="gap-2">
-            <Text className="text-lg font-bold text-gray-800">대상 질병</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {recipe.target_diseases.map((d, i) => (
-                <View key={i} className="rounded-full bg-red-50 px-3 py-1">
-                  <Text className="text-xs text-danger">{d}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Ingredients checklist */}
+        {/* 재료 체크리스트 — 스토리보드: sort_order 기준 정렬 */}
         {recipe.ingredients.length > 0 && (
           <View className="gap-2">
             <Text className="text-lg font-bold text-gray-800">재료</Text>
@@ -182,9 +171,17 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
                 }`}
                 onPress={() => toggleIngredient(i)}
               >
-                <Text className="text-lg">
-                  {checked.has(i) ? "☑" : "☐"}
-                </Text>
+                <View
+                  className={`h-5 w-5 items-center justify-center rounded border ${
+                    checked.has(i)
+                      ? "border-green-500 bg-green-500"
+                      : "border-gray-300 bg-white"
+                  }`}
+                >
+                  {checked.has(i) && (
+                    <Text className="text-xs text-white">✓</Text>
+                  )}
+                </View>
                 <Text
                   className={`flex-1 text-sm ${
                     checked.has(i) ? "text-gray-400 line-through" : "text-gray-800"
@@ -200,7 +197,7 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
           </View>
         )}
 
-        {/* Steps */}
+        {/* 조리 단계 — 스토리보드: 번호 원형 뱃지 + 설명 */}
         {recipe.steps.length > 0 && (
           <View className="gap-2">
             <Text className="text-lg font-bold text-gray-800">조리 단계</Text>
@@ -222,23 +219,23 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
           </View>
         )}
 
-        {/* Actions */}
+        {/* 뒤로가기 */}
         <View className="gap-3 pb-4">
           <Pressable
             className="rounded-xl bg-gray-100 px-6 py-3 active:opacity-80"
             onPress={() => navigation.goBack()}
           >
-            <Text className="text-center font-semibold text-muted">
+            <Text className="text-center text-sm font-semibold text-muted">
               뒤로가기
             </Text>
           </Pressable>
           <Pressable
             className="rounded-xl bg-gray-100 px-6 py-3 active:opacity-80"
             onPress={() =>
-              navigation.reset({ index: 0, routes: [{ name: "Landing" }] })
+              navigation.reset({ index: 0, routes: [{ name: "Upload" }] })
             }
           >
-            <Text className="text-center font-semibold text-muted">
+            <Text className="text-center text-sm font-semibold text-muted">
               다른 강아지 분석하기
             </Text>
           </Pressable>

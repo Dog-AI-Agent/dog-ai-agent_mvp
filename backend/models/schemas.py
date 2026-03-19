@@ -83,11 +83,30 @@ class DiseaseDetailResponse(BaseModel):
     severity: str = "medium"
     symptoms: list[str] = []
     affected_area: Optional[str] = None
-    prevention_tips: list[str] = []
+    prevention_tips: Optional[str] = None
+    source_name: Optional[str] = None
+    source_url: Optional[str] = None
     recommended_ingredients: list[IngredientInDisease] = []
 
 
 # ── Recommendation ──
+
+class NutrientItem(BaseModel):
+    """탭1: 유전병별 권장 영양소"""
+    disease_name_ko: str
+    severity: str
+    recommended_ingredients: list[IngredientInDisease] = []
+
+
+class FoodCard(BaseModel):
+    """탭2: 추천 음식 카드"""
+    food_id: str
+    name_ko: str
+    category: Optional[str] = None
+    image_url: Optional[str] = None
+    related_ingredients: list[str] = []
+    recipe_ids: list[str] = []
+
 
 class RecipeCard(BaseModel):
     recipe_id: str
@@ -101,8 +120,8 @@ class RecipeCard(BaseModel):
 class RecommendationResponse(BaseModel):
     breed_name_ko: str
     summary: str
-    feeds: list[dict] = []
-    supplements: list[dict] = []
+    tab_nutrients: list[NutrientItem] = []
+    tab_foods: list[FoodCard] = []
     recipes: list[RecipeCard] = []
 
 
@@ -119,20 +138,17 @@ class RecipeStep(BaseModel):
     instruction: str
 
 
-class RecipeNutrition(BaseModel):
-    nutrient_name: str
-    amount: Optional[float] = None
-    unit: Optional[str] = None
-
-
 class RecipeDetailResponse(BaseModel):
     recipe_id: str
     title: str
     description: Optional[str] = None
-    calories_per_serving: Optional[float] = None
+    calories_per_serving: Optional[int] = None
     cook_time_min: Optional[int] = None
     difficulty: Optional[str] = None
     servings: int = 1
+    image_url: Optional[str] = None
+    source_name: Optional[str] = None
+    source_url: Optional[str] = None
     ingredients: list[RecipeIngredient] = []
     steps: list[RecipeStep] = []
     target_diseases: list[str] = []
