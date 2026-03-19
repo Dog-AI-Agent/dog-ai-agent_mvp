@@ -27,46 +27,26 @@ async def get_recipe(
     recipe = recipe_result.data[0]
     title = recipe.get("title") or recipe.get("title_ko") or recipe.get("title_en") or ""
 
-    # ── Get ingredients ──
-    ingredients: list[RecipeIngredient] = []
-    try:
-        rf_result = (
-            db.table("recipe_foods")
-            .select("food_id, amount, unit, sort_order, foods(name_ko, name_en)")
-            .eq("recipe_id", recipe_id)
-            .order("sort_order")
-            .execute()
+    # Get ingredients
+    ing_result = (
+        db.table("recipe_ingredients")
+        .select("name, amount, sort_order, calories_per_100g, calories_small, calories_medium, calories_large")
+        .eq("recipe_id", recipe_id)
+        .order("sort_order")
+        .execute()
+    )
+    ingredients = [
+        RecipeIngredient(
+            name=r["name"],
+            amount=r.get("amount"),
+            sort_order=r.get("sort_order", 0),
+            calories_per_100g=r.get("calories_per_100g", 0),
+            calories_small=r.get("calories_small", 0),
+            calories_medium=r.get("calories_medium", 0),
+            calories_large=r.get("calories_large", 0),
         )
-        for rf in rf_result.data:
-            f = rf.get("foods")
-            name = (f.get("name_ko") or f.get("name_en", "")) if f else ""
-            amount_str = rf.get("amount") or ""
-            if rf.get("unit"):
-                amount_str = f"{amount_str} {rf['unit']}".strip()
-            ingredients.append(RecipeIngredient(
-                name=name,
-                amount=amount_str or None,
-                sort_order=rf.get("sort_order", 0),
-            ))
-    except Exception:
-        try:
-            ing_result = (
-                db.table("recipe_ingredients")
-                .select("name, amount, sort_order")
-                .eq("recipe_id", recipe_id)
-                .order("sort_order")
-                .execute()
-            )
-            ingredients = [
-                RecipeIngredient(
-                    name=r["name"],
-                    amount=r.get("amount"),
-                    sort_order=r.get("sort_order", 0),
-                )
-                for r in ing_result.data
-            ]
-        except Exception:
-            pass
+        for r in ing_result.data
+    ]
 
     # ── Get steps (select * to handle both v1 instruction / v2 description) ──
     steps: list[RecipeStep] = []

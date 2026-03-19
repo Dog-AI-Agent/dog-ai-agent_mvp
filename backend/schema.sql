@@ -55,6 +55,10 @@ CREATE TABLE IF NOT EXISTS ingredients (
     name_ko TEXT,
     category TEXT,
     effect_description TEXT,
+    calories_per_100g INT DEFAULT 0,
+    calories_small INT DEFAULT 0,
+    calories_medium INT DEFAULT 0,
+    calories_large INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -129,13 +133,18 @@ CREATE TABLE IF NOT EXISTS food_ingredients (
 -- [9] recipe_foods — 레시피 ↔ 재료 (M:N)
 -- amount, unit, sort_order로 재료 수량 및 순서 관리
 -- ============================================================
-CREATE TABLE IF NOT EXISTS recipe_foods (
-    recipe_id    UUID NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
-    food_id      UUID NOT NULL REFERENCES foods(id) ON DELETE CASCADE,
-    amount       TEXT,                                   -- 재료 수량 (예: "200g", "1컵")
-    unit         TEXT,                                   -- 단위
-    sort_order   INT DEFAULT 0,                          -- 표시 순서
-    PRIMARY KEY (recipe_id, food_id)
+
+CREATE TABLE IF NOT EXISTS recipe_ingredients (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE,
+    ingredient_id UUID REFERENCES ingredients(id),
+    name TEXT NOT NULL,
+    amount TEXT,
+    sort_order INT DEFAULT 0,
+    calories_per_100g INT DEFAULT 0,
+    calories_small INT DEFAULT 0,
+    calories_medium INT DEFAULT 0,
+    calories_large INT DEFAULT 0
 );
 
 -- ============================================================

@@ -131,6 +131,10 @@ class RecipeIngredient(BaseModel):
     name: str
     amount: Optional[str] = None
     sort_order: int = 0
+    calories_per_100g: int = 0
+    calories_small: int = 0
+    calories_medium: int = 0
+    calories_large: int = 0
 
 
 class RecipeStep(BaseModel):
