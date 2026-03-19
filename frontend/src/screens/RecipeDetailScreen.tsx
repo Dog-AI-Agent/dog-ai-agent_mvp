@@ -11,6 +11,8 @@ import { getRecipe } from "../api/recipes";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorState from "../components/ErrorState";
 import { parseRecipeDetail } from "../utils/parseSummary";
+import MarkdownRenderer from "../components/MarkdownRenderer";
+import { reorderSummary } from "../utils/reorderSummary";
 import type { RecipeDetailResponse } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeDetail">;
@@ -75,6 +77,8 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
 
   if (!recipe) return null;
 
+  // LLM summary를 직접 MarkdownRenderer로 렌더링
+  // parseRecipeDetail은 fallback용으로 유지
   const detail = recipe.summary ? parseRecipeDetail(recipe.summary) : null;
 
   return (
@@ -123,34 +127,10 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
           />
         </View>
 
-        {/* LLM 상세 설명 (있을 경우) */}
-        {detail?.message && (
-          <View className="rounded-xl bg-primary-light px-4 py-4">
-            <Text className="text-sm leading-5 text-gray-700">{detail.message}</Text>
-          </View>
-        )}
-
-        {/* 재료별 효능 (LLM) */}
-        {detail && detail.ingredientDetails.length > 0 && (
-          <View className="gap-2">
-            <Text className="text-lg font-bold text-gray-800">재료별 효능</Text>
-            {detail.ingredientDetails.map((ing, idx) => (
-              <View key={idx} className="rounded-xl bg-card px-4 py-3 gap-1">
-                <Text className="text-sm font-semibold text-gray-800">
-                  {idx + 1}. {ing.name}
-                </Text>
-                {ing.explanations.map((exp, ei) => (
-                  <Text key={ei} className="ml-4 text-xs text-muted">• {exp}</Text>
-                ))}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {detail?.closing && (
-          <View className="rounded-xl bg-green-50 px-4 py-3">
-            <Text className="text-xs font-bold text-green-700">급여 안내</Text>
-            <Text className="mt-1 text-sm text-gray-700">{detail.closing}</Text>
+        {/* LLM summary — 만드는 법 → 추천 이유 순서로 렌더링 */}
+        {recipe.summary && (
+          <View className="rounded-2xl bg-primary-light px-4 py-4">
+            <MarkdownRenderer content={reorderSummary(recipe.summary)} />
           </View>
         )}
 

@@ -50,12 +50,12 @@ CREATE TABLE IF NOT EXISTS diseases (
 -- category로 성분 유형 분류
 -- ============================================================
 CREATE TABLE IF NOT EXISTS ingredients (
-    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name_en       TEXT UNIQUE NOT NULL,                  -- 성분명 (영문)
-    name_ko       TEXT,                                  -- 성분명 (한글)
-    category      TEXT,                                  -- 성분 유형 (vitamin, mineral, fatty_acid 등)
-    description   TEXT,                                  -- 성분 설명
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name_en TEXT UNIQUE NOT NULL,
+    name_ko TEXT,
+    category TEXT,
+    effect_description TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- ============================================================
