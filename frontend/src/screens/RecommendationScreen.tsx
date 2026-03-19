@@ -3,8 +3,13 @@
 // 스토리보드: 자연어 요약 + 탭1(유전병별 영양소) + 탭2(추천 음식)
 // API v2: tab_nutrients, tab_foods, recipes
 // ============================================================
-import { useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { useEffect, useState, useCallback } from "react";
+import { View, Text, ScrollView, Pressable, LayoutAnimation, Platform, UIManager } from "react-native";
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
@@ -14,10 +19,59 @@ import EmptyState from "../components/EmptyState";
 import ErrorState from "../components/ErrorState";
 import Disclaimer from "../components/Disclaimer";
 import RiskBadge from "../components/RiskBadge";
+import MarkdownRenderer from "../components/MarkdownRenderer";
+import { extractReasonOnly } from "../utils/reorderSummary";
 import type { RecommendationResponse } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Recommendation">;
 type TabKey = "nutrients" | "foods";
+
+/** 요약 접기/펼치기 카드 */
+const CollapsibleSummary = ({ summary }: { summary: string }) => {
+  const [expanded, setExpanded] = useState(false);
+  // 추천이유/intro 섹션만 추출
+  const reasonText = extractReasonOnly(summary);
+  // 마크다운 기호 제거한 순수 텍스트
+  const plainText = reasonText
+    .replace(/^#{1,4}\s*/gm, "")
+    .replace(/\*\*/g, "")
+    .replace(/^[-•*]\s*/gm, "")
+    .trim();
+
+  const toggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((v) => !v);
+  };
+
+  return (
+    <Pressable
+      onPress={toggle}
+      style={{
+        backgroundColor: "#eef1ff",
+        borderRadius: 16,
+        padding: 16,
+        gap: 8,
+      }}
+    >
+      {/* 헤더 행 */}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text style={{ fontSize: 15 }}>💡</Text>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: "#4361ee" }}>AI 추천 이유</Text>
+        </View>
+        <Text style={{ fontSize: 12, color: "#6b7280" }}>{expanded ? "접기 ▲" : "더 보기 ▼"}</Text>
+      </View>
+
+      {/* 미리보기: 항상 2줄 표시 */}
+      <Text
+        numberOfLines={expanded ? undefined : 2}
+        style={{ fontSize: 13, color: "#374151", lineHeight: 20 }}
+      >
+        {plainText}
+      </Text>
+    </Pressable>
+  );
+};
 
 const RecommendationScreen = ({ navigation, route }: Props) => {
   const { breedId, breedNameKo } = route.params;
@@ -79,11 +133,9 @@ const RecommendationScreen = ({ navigation, route }: Props) => {
           {data.breed_name_ko} 맞춤 추천
         </Text>
 
-        {/* 자연어 요약 — breed.summary */}
+        {/* 자연어 요약 — 접기/펼치기 카드 */}
         {data.summary ? (
-          <View className="rounded-xl bg-primary-light px-4 py-4">
-            <Text className="text-sm leading-5 text-gray-700">{data.summary}</Text>
-          </View>
+          <CollapsibleSummary summary={data.summary} />
         ) : null}
 
         {/* 탭 바 — 스토리보드: 2탭 */}
