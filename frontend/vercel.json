@@ -4,8 +4,8 @@
   "framework": null,
   "rewrites": [
     {
-      "source": "/proxy/:path*",
-      "destination": "https://brotherly-impeachable-alyce.ngrok-free.dev/:path*"
+      "source": "/api/proxy/:path*",
+      "destination": "/api/backend?path=/:path*"
     }
   ]
 }
