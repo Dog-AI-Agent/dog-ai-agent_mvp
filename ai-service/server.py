@@ -22,7 +22,7 @@ from PIL import Image
 async def lifespan(app: FastAPI):
     # Startup: preload models
     print("Loading AI models...")
-    from savetojson import _load_resources
+    from breed_classifier import _load_resources
     _load_resources()
     from dog_detector import load_model
     load_model()
@@ -66,7 +66,7 @@ async def detect_and_classify(file: UploadFile = File(...)):
         }
 
     # Breed classification
-    from savetojson import predict
+    from breed_classifier import predict
     try:
         pil_image = Image.open(io.BytesIO(contents))
         result = predict(pil_image)
