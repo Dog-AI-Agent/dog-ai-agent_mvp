@@ -85,7 +85,7 @@ async def detect_and_classify(file: UploadFile = File(...)):
         }
 
     # Breed classification
-    from savetojson import predict
+    from breed_classifier import predict
     try:
         pil_image = Image.open(io.BytesIO(contents))
         result = predict(pil_image)
