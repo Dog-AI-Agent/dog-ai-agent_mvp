@@ -64,8 +64,9 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
         {imageUri && (
           <Image
             source={{ uri: imageUri }}
-            className="h-52 w-full rounded-2xl"
-            resizeMode="cover"
+            className="w-full rounded-2xl"
+            style={{ aspectRatio: 4 / 3 }}
+            resizeMode="contain"
           />
         )}
 
