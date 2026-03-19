@@ -60,8 +60,8 @@ function joinSections(sections: Section[]): string {
 export function reorderSummary(raw: string): string {
   const sections = splitSections(raw);
 
-  const recipeKeywords = ["만드는법", "조리법", "조리방법", "만들기"];
-  const reasonKeywords = ["추천이유", "이유", "효능", "왜추천"];
+  const recipeKeywords = ["만드는법", "조리법", "조리방법", "만들기", "재료"];
+  const reasonKeywords = ["추천이유", "이유", "효능", "왜추천", "한줄소개", "소개"];
 
   const recipeIdx = sections.findIndex((s) =>
     recipeKeywords.some((kw) => s.key.includes(kw))

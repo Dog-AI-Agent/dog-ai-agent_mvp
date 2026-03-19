@@ -21,6 +21,8 @@ import Disclaimer from "../components/Disclaimer";
 import RiskBadge from "../components/RiskBadge";
 import MarkdownRenderer from "../components/MarkdownRenderer";
 import { extractReasonOnly } from "../utils/reorderSummary";
+import { categorizeIngredients, CATEGORY_META } from "../utils/categorizeIngredients";
+import type { IngredientCategory } from "../utils/categorizeIngredients";
 import type { RecommendationResponse } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Recommendation">;
@@ -157,41 +159,146 @@ const RecommendationScreen = ({ navigation, route }: Props) => {
           ))}
         </View>
 
-        {/* ── 탭1: 유전병별 영양소 (tab_nutrients) ── */}
+        {/* ── 탭1: 유전병별 영양소 ── */}
         {activeTab === "nutrients" && (
-          <View className="gap-3">
+          <View style={{ gap: 16 }}>
             {data.tab_nutrients && data.tab_nutrients.length > 0 ? (
-              data.tab_nutrients.map((item, idx) => (
-                <View key={idx} className="rounded-xl bg-card px-4 py-4 gap-3">
-                  {/* 유전병 이름 + severity 뱃지 */}
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-base font-semibold text-gray-800">
-                      {item.disease_name_ko}
-                    </Text>
-                    <RiskBadge level={item.severity} />
-                  </View>
+              data.tab_nutrients.map((item, idx) => {
+                const cats = categorizeIngredients(item.recommended_ingredients);
+                const severityColor =
+                  item.severity === "high" ? "#dc2626"
+                  : item.severity === "medium" ? "#d97706"
+                  : "#16a34a";
+                const severityBg =
+                  item.severity === "high" ? "#fef2f2"
+                  : item.severity === "medium" ? "#fffbeb"
+                  : "#f0fdf4";
+                const severityLabel =
+                  item.severity === "high" ? "고위험"
+                  : item.severity === "medium" ? "중간"
+                  : "낮음";
 
-                  {/* 권장 영양소 리스트 */}
-                  {item.recommended_ingredients.length > 0 ? (
-                    <View className="gap-2">
-                      {item.recommended_ingredients.map((ing) => (
-                        <View key={ing.ingredient_id} className="rounded-lg bg-white px-3 py-2">
-                          <Text className="text-sm font-medium text-gray-800">
-                            {ing.name_ko}
-                          </Text>
-                          {ing.effect_description ? (
-                            <Text className="mt-1 text-xs text-muted">
-                              {ing.effect_description}
-                            </Text>
-                          ) : null}
-                        </View>
-                      ))}
+                return (
+                  <View
+                    key={idx}
+                    style={{
+                      backgroundColor: "#fff",
+                      borderRadius: 18,
+                      borderWidth: 1.5,
+                      borderColor: "#e5e7eb",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* 헤더: 유전병명 + 위험도 */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        paddingHorizontal: 16,
+                        paddingVertical: 14,
+                        backgroundColor: "#fafafa",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#f0f0f0",
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
+                        <View style={{
+                          width: 8, height: 8, borderRadius: 4,
+                          backgroundColor: severityColor, flexShrink: 0,
+                        }} />
+                        <Text style={{
+                          fontSize: 15, fontWeight: "700", color: "#1f2937", flex: 1,
+                        }}>
+                          {item.disease_name_ko}
+                        </Text>
+                      </View>
+                      <View style={{
+                        backgroundColor: severityBg,
+                        borderRadius: 20,
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                      }}>
+                        <Text style={{ fontSize: 11, fontWeight: "700", color: severityColor }}>
+                          {severityLabel}
+                        </Text>
+                      </View>
                     </View>
-                  ) : (
-                    <Text className="text-xs text-muted">권장 영양소 정보가 없습니다.</Text>
-                  )}
-                </View>
-              ))
+
+                    {/* 카테고리 섹션 */}
+                    <View style={{ padding: 14, gap: 10 }}>
+                      {(Object.keys(CATEGORY_META) as IngredientCategory[]).map((cat) => {
+                        const meta = CATEGORY_META[cat];
+                        const items = cats[cat];
+                        if (items.length === 0) return null;
+                        return (
+                          <View key={cat}>
+                            {/* 카테고리 헤더 */}
+                            <View style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 6,
+                              marginBottom: 8,
+                            }}>
+                              <Text style={{ fontSize: 14 }}>{meta.emoji}</Text>
+                              <Text style={{
+                                fontSize: 12, fontWeight: "700", color: meta.color,
+                              }}>
+                                {meta.label}
+                              </Text>
+                              <View style={{ flex: 1, height: 1, backgroundColor: meta.bg, marginLeft: 4 }} />
+                            </View>
+
+                            {/* 재료 그리드 (2열) */}
+                            <View style={{
+                              flexDirection: "row",
+                              flexWrap: "wrap",
+                              gap: 8,
+                            }}>
+                              {items.map((ing) => (
+                                <View
+                                  key={ing.ingredient_id}
+                                  style={{
+                                    backgroundColor: meta.bg,
+                                    borderRadius: 12,
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 8,
+                                    minWidth: "45%",
+                                    flex: 1,
+                                    maxWidth: "48%",
+                                  }}
+                                >
+                                  <Text style={{
+                                    fontSize: 13, fontWeight: "600", color: "#1f2937",
+                                  }}>
+                                    {ing.name_ko}
+                                  </Text>
+                                  {ing.effect_description ? (
+                                    <Text style={{
+                                      marginTop: 3,
+                                      fontSize: 11,
+                                      color: "#6b7280",
+                                      lineHeight: 16,
+                                    }} numberOfLines={2}>
+                                      {ing.effect_description}
+                                    </Text>
+                                  ) : null}
+                                </View>
+                              ))}
+                            </View>
+                          </View>
+                        );
+                      })}
+
+                      {item.recommended_ingredients.length === 0 && (
+                        <Text style={{ fontSize: 13, color: "#9ca3af", textAlign: "center", paddingVertical: 8 }}>
+                          권장 영양소 정보가 없습니다.
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                );
+              })
             ) : (
               <EmptyState message="영양소 데이터가 아직 준비되지 않았습니다." />
             )}
@@ -200,108 +307,220 @@ const RecommendationScreen = ({ navigation, route }: Props) => {
 
         {/* ── 탭2: 추천 음식 카드 (tab_foods) ── */}
         {activeTab === "foods" && (
-          <View className="gap-3">
+          <View style={{ gap: 14 }}>
             {data.tab_foods && data.tab_foods.length > 0 ? (
-              data.tab_foods.map((food) => (
-                <Pressable
-                  key={food.food_id}
-                  className="rounded-xl bg-card px-4 py-4 active:opacity-80"
-                  disabled={food.recipe_ids.length === 0}
-                  onPress={() => {
-                    if (food.recipe_ids.length === 1) {
+              data.tab_foods.map((food, index) => {
+                const hasRecipe = food.recipe_ids.length > 0;
+                const accent = index % 3 === 0 ? "#4361ee" : index % 3 === 1 ? "#CC1A1A" : "#7b2ff7";
+                const accentBg = index % 3 === 0 ? "#eef1ff" : index % 3 === 1 ? "#fff0f0" : "#f3eeff";
+                return (
+                  <Pressable
+                    key={food.food_id}
+                    disabled={!hasRecipe}
+                    onPress={() => {
                       navigation.navigate("RecipeDetail", {
                         recipeId: food.recipe_ids[0],
                         breedId,
                       });
-                    } else if (food.recipe_ids.length > 1) {
-                      // 여러 레시피 → 첫 번째로 이동 (TODO: 선택 UI)
-                      navigation.navigate("RecipeDetail", {
-                        recipeId: food.recipe_ids[0],
-                        breedId,
-                      });
-                    }
-                  }}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-base font-semibold text-gray-800">
-                      {food.name_ko}
-                    </Text>
-                    {food.category && (
-                      <View className="rounded-full bg-primary-light px-2.5 py-1">
-                        <Text className="text-xs font-medium text-primary">
-                          {food.category}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
+                    }}
+                    style={({ pressed }) => ({
+                      backgroundColor: pressed ? accentBg : "#ffffff",
+                      borderRadius: 20,
+                      borderWidth: 1.5,
+                      borderColor: hasRecipe ? accentBg : "#e5e7eb",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.07,
+                      shadowRadius: 8,
+                      elevation: 3,
+                      overflow: "hidden",
+                      opacity: hasRecipe ? 1 : 0.5,
+                    })}
+                  >
+                    {/* 좌측 컬러 바 */}
+                    <View style={{ flexDirection: "row" }}>
+                      <View style={{ width: 5, backgroundColor: accent }} />
 
-                  {/* 관련 영양소 태그 */}
-                  {food.related_ingredients.length > 0 && (
-                    <View className="mt-2 flex-row flex-wrap gap-1.5">
-                      {food.related_ingredients.map((ing, i) => (
-                        <View key={i} className="rounded-full bg-gray-100 px-2 py-1">
-                          <Text className="text-xs text-muted">{ing}</Text>
+                      <View style={{ flex: 1, padding: 16, gap: 12 }}>
+                        {/* 1행: 번호 + 음식명 */}
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                          <View style={{
+                            width: 32, height: 32, borderRadius: 10,
+                            backgroundColor: accentBg,
+                            alignItems: "center", justifyContent: "center", flexShrink: 0,
+                          }}>
+                            <Text style={{ fontSize: 14, fontWeight: "800", color: accent }}>
+                              {index + 1}
+                            </Text>
+                          </View>
+                          <Text style={{ flex: 1, fontSize: 16, fontWeight: "800", color: "#111827", letterSpacing: -0.3 }}>
+                            {food.name_ko}
+                          </Text>
+                          {food.category && (
+                            <View style={{
+                              backgroundColor: accentBg, borderRadius: 8,
+                              paddingHorizontal: 9, paddingVertical: 4,
+                            }}>
+                              <Text style={{ fontSize: 11, fontWeight: "700", color: accent }}>
+                                {food.category}
+                              </Text>
+                            </View>
+                          )}
                         </View>
-                      ))}
-                    </View>
-                  )}
 
-                  {/* 레시피 개수 */}
-                  <Text className="mt-2 text-xs font-semibold text-primary">
-                    {food.recipe_ids.length > 0
-                      ? `레시피 ${food.recipe_ids.length}개 ▶`
-                      : "레시피 없음"}
-                  </Text>
-                </Pressable>
-              ))
+                        {/* 2행: 관련 영양소 태그 */}
+                        {food.related_ingredients.length > 0 && (
+                          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                            {food.related_ingredients.map((ing, i) => (
+                              <View key={i} style={{
+                                backgroundColor: "#f9fafb",
+                                borderWidth: 1, borderColor: "#e5e7eb",
+                                borderRadius: 8,
+                                paddingHorizontal: 9, paddingVertical: 4,
+                                flexDirection: "row", alignItems: "center", gap: 4,
+                              }}>
+                                <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: accent }} />
+                                <Text style={{ fontSize: 11, color: "#374151", fontWeight: "600" }}>
+                                  {ing}
+                                </Text>
+                              </View>
+                            ))}
+                          </View>
+                        )}
+
+                        {/* 3행: 하단 */}
+                        <View style={{
+                          flexDirection: "row", alignItems: "center",
+                          justifyContent: "space-between",
+                          paddingTop: 10,
+                          borderTopWidth: 1, borderTopColor: "#f3f4f6",
+                        }}>
+                          <Text style={{ fontSize: 12, color: "#9ca3af" }}>
+                            {hasRecipe ? `레시피 ${food.recipe_ids.length}개 포함` : "레시피 준비 중"}
+                          </Text>
+                          {hasRecipe && (
+                            <View style={{
+                              flexDirection: "row", alignItems: "center", gap: 4,
+                              backgroundColor: accent,
+                              borderRadius: 10, paddingHorizontal: 14, paddingVertical: 7,
+                            }}>
+                              <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>레시피 보기</Text>
+                              <Text style={{ fontSize: 13, color: "#fff", fontWeight: "700" }}>→</Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                    </View>
+                  </Pressable>
+                );
+              })
             ) : (
               // fallback: recipes 배열 사용
               data.recipes && data.recipes.length > 0 ? (
-                data.recipes.map((r) => (
-                  <Pressable
-                    key={r.recipe_id}
-                    className="rounded-xl bg-card px-4 py-4 active:opacity-80"
-                    onPress={() =>
-                      navigation.navigate("RecipeDetail", {
-                        recipeId: r.recipe_id,
-                        breedId,
-                      })
-                    }
-                  >
-                    <Text className="text-base font-semibold text-gray-800">
-                      {r.title}
-                    </Text>
-                    {r.description && (
-                      <Text className="mt-1 text-sm text-muted" numberOfLines={2}>
-                        {r.description}
-                      </Text>
-                    )}
-                    <View className="mt-2 flex-row items-center gap-3">
-                      {r.difficulty && (
-                        <View className="rounded-full bg-primary-light px-2.5 py-1">
-                          <Text className="text-xs font-medium text-primary">
-                            {r.difficulty === "easy" ? "쉬움" : r.difficulty === "medium" ? "보통" : "어려움"}
-                          </Text>
-                        </View>
-                      )}
-                      {r.cook_time_min != null && (
-                        <Text className="text-xs text-muted">⏱ {r.cook_time_min}분</Text>
-                      )}
-                    </View>
-                    {r.target_diseases.length > 0 && (
-                      <View className="mt-2 flex-row flex-wrap gap-1.5">
-                        {r.target_diseases.map((d, i) => (
-                          <View key={i} className="rounded-full bg-risk-high px-2.5 py-1">
-                            <Text className="text-xs text-risk-high-text">{d}</Text>
+                data.recipes.map((r, index) => {
+                  const accent = index % 3 === 0 ? "#4361ee" : index % 3 === 1 ? "#CC1A1A" : "#7b2ff7";
+                  const accentBg = index % 3 === 0 ? "#eef1ff" : index % 3 === 1 ? "#fff0f0" : "#f3eeff";
+                  return (
+                    <Pressable
+                      key={r.recipe_id}
+                      onPress={() =>
+                        navigation.navigate("RecipeDetail", {
+                          recipeId: r.recipe_id,
+                          breedId,
+                        })
+                      }
+                      style={({ pressed }) => ({
+                        backgroundColor: pressed ? accentBg : "#ffffff",
+                        borderRadius: 20,
+                        borderWidth: 1.5,
+                        borderColor: accentBg,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.07,
+                        shadowRadius: 8,
+                        elevation: 3,
+                        overflow: "hidden",
+                      })}
+                    >
+                      <View style={{ flexDirection: "row" }}>
+                        <View style={{ width: 5, backgroundColor: accent }} />
+
+                        <View style={{ flex: 1, padding: 16, gap: 12 }}>
+                          {/* 1행: 번호 + 제목 */}
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                            <View style={{
+                              width: 32, height: 32, borderRadius: 10,
+                              backgroundColor: accentBg,
+                              alignItems: "center", justifyContent: "center", flexShrink: 0,
+                            }}>
+                              <Text style={{ fontSize: 14, fontWeight: "800", color: accent }}>
+                                {index + 1}
+                              </Text>
+                            </View>
+                            <Text style={{ flex: 1, fontSize: 16, fontWeight: "800", color: "#111827", letterSpacing: -0.3 }}>
+                              {r.title}
+                            </Text>
                           </View>
-                        ))}
+
+                          {/* 메타 정보 행 */}
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                            {r.difficulty && (
+                              <View style={{
+                                backgroundColor: r.difficulty === "easy" ? "#f0fdf4" : r.difficulty === "medium" ? "#fffbeb" : "#fef2f2",
+                                borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
+                              }}>
+                                <Text style={{
+                                  fontSize: 11, fontWeight: "700",
+                                  color: r.difficulty === "easy" ? "#16a34a" : r.difficulty === "medium" ? "#d97706" : "#dc2626",
+                                }}>
+                                  {r.difficulty === "easy" ? "● 쉬움" : r.difficulty === "medium" ? "● 보통" : "● 어려움"}
+                                </Text>
+                              </View>
+                            )}
+                            {r.cook_time_min != null && (
+                              <View style={{
+                                backgroundColor: "#f9fafb", borderRadius: 8,
+                                paddingHorizontal: 10, paddingVertical: 4,
+                              }}>
+                                <Text style={{ fontSize: 11, color: "#6b7280", fontWeight: "600" }}>⏱ {r.cook_time_min}분</Text>
+                              </View>
+                            )}
+                          </View>
+
+                          {/* 대상 유전병 태그 */}
+                          {r.target_diseases.length > 0 && (
+                            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                              {r.target_diseases.map((d, i) => (
+                                <View key={i} style={{
+                                  backgroundColor: "#fff0f0",
+                                  borderWidth: 1, borderColor: "#fecaca",
+                                  borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4,
+                                }}>
+                                  <Text style={{ fontSize: 11, color: "#dc2626", fontWeight: "600" }}>{d}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          )}
+
+                          {/* 하단: 레시피 보기 버튼 */}
+                          <View style={{
+                            flexDirection: "row", justifyContent: "flex-end",
+                            paddingTop: 10, borderTopWidth: 1, borderTopColor: "#f3f4f6",
+                          }}>
+                            <View style={{
+                              flexDirection: "row", alignItems: "center", gap: 4,
+                              backgroundColor: accent,
+                              borderRadius: 10, paddingHorizontal: 14, paddingVertical: 7,
+                            }}>
+                              <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>레시피 보기</Text>
+                              <Text style={{ fontSize: 13, color: "#fff", fontWeight: "700" }}>→</Text>
+                            </View>
+                          </View>
+                        </View>
                       </View>
-                    )}
-                    <Text className="mt-2 text-xs font-semibold text-primary">
-                      레시피 보기 ▶
-                    </Text>
-                  </Pressable>
-                ))
+                    </Pressable>
+                  );
+                })
               ) : (
                 <EmptyState message="추천 음식이 없습니다." />
               )
