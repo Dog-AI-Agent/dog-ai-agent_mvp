@@ -41,6 +41,10 @@ CREATE TABLE IF NOT EXISTS ingredients (
     name_en TEXT UNIQUE NOT NULL,
     name_ko TEXT,
     effect_description TEXT,
+    calories_per_100g INT DEFAULT 0,
+    calories_small INT DEFAULT 0,
+    calories_medium INT DEFAULT 0,
+    calories_large INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -101,7 +105,11 @@ CREATE TABLE IF NOT EXISTS recipe_ingredients (
     ingredient_id UUID REFERENCES ingredients(id),
     name TEXT NOT NULL,
     amount TEXT,
-    sort_order INT DEFAULT 0
+    sort_order INT DEFAULT 0,
+    calories_per_100g INT DEFAULT 0,
+    calories_small INT DEFAULT 0,
+    calories_medium INT DEFAULT 0,
+    calories_large INT DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS recipe_steps (

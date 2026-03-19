@@ -29,13 +29,21 @@ async def get_recipe(
     # Get ingredients
     ing_result = (
         db.table("recipe_ingredients")
-        .select("name, amount, sort_order")
+        .select("name, amount, sort_order, calories_per_100g, calories_small, calories_medium, calories_large")
         .eq("recipe_id", recipe_id)
         .order("sort_order")
         .execute()
     )
     ingredients = [
-        RecipeIngredient(name=r["name"], amount=r.get("amount"), sort_order=r.get("sort_order", 0))
+        RecipeIngredient(
+            name=r["name"],
+            amount=r.get("amount"),
+            sort_order=r.get("sort_order", 0),
+            calories_per_100g=r.get("calories_per_100g", 0),
+            calories_small=r.get("calories_small", 0),
+            calories_medium=r.get("calories_medium", 0),
+            calories_large=r.get("calories_large", 0),
+        )
         for r in ing_result.data
     ]
 
