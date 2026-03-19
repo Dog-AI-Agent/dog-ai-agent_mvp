@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 
 from backend.database import get_supabase
-from backend.utils.disease_filter import sample_diseases_by_risk
 from backend.models.schemas import (
     BreedListResponse,
     BreedListItem,
@@ -82,8 +81,6 @@ async def get_breed(breed_id: str):
                 severity=d.get("severity", "medium"),
             ))
 
-    filtered_diseases = sample_diseases_by_risk(diseases, per_level=2)
-
     return BreedDetailResponse(
         breed_id=breed["id"],
         name_ko=breed["name_ko"],
@@ -94,5 +91,5 @@ async def get_breed(breed_id: str):
         description=breed.get("description"),
         temperament=breed.get("temperament"),
         image_url=breed.get("image_url"),
-        diseases=filtered_diseases,
+        diseases=diseases,
     )

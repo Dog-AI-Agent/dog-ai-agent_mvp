@@ -20,12 +20,15 @@ ai-service/gen-img/output/
 ***/__pycache__/
 frontend/node_modules/
 test_img/
+venv312/
 
 ### Python
 *.pyc
 *.pyo
 .venv/
 venv/
+.venv312/
+venv312/
 .pytest_cache/
 .mypy_cache/
 dist/
@@ -42,6 +45,7 @@ frontend/dist/
 *.pt
 *.pth
 *.ckpt
+.venv312/
 wandb/
 runs/
 checkpoints/
@@ -53,3 +57,11 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# 설정 파일 및 API 클라이언트 제외
+.env.example
+frontend/src/api/client.ts
+
+# 패키지 잠금 파일 제외 (루트 및 백엔드)
+package-lock.json
+backend/package-lock.json

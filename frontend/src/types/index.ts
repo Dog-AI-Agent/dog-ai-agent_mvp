@@ -58,6 +58,8 @@ export interface BreedDetailResponse {
   diseases: DiseaseInBreed[];
 }
 
+// ── Disease ──
+
 export interface IngredientInDisease {
   ingredient_id: string;
   name_ko: string;
@@ -73,8 +75,27 @@ export interface DiseaseDetailResponse {
   severity: string;
   symptoms: string[];
   affected_area?: string;
-  prevention_tips: string[];
+  prevention_tips?: string;
+  source_name?: string;
+  source_url?: string;
   recommended_ingredients: IngredientInDisease[];
+}
+
+// ── Recommendation (v2: 탭 구조) ──
+
+export interface NutrientItem {
+  disease_name_ko: string;
+  severity: string;
+  recommended_ingredients: IngredientInDisease[];
+}
+
+export interface FoodCard {
+  food_id: string;
+  name_ko: string;
+  category?: string;
+  image_url?: string;
+  related_ingredients: string[];
+  recipe_ids: string[];
 }
 
 export interface RecipeCard {
@@ -89,10 +110,12 @@ export interface RecipeCard {
 export interface RecommendationResponse {
   breed_name_ko: string;
   summary: string;
-  feeds: Record<string, unknown>[];
-  supplements: Record<string, unknown>[];
+  tab_nutrients: NutrientItem[];
+  tab_foods: FoodCard[];
   recipes: RecipeCard[];
 }
+
+// ── Recipe ──
 
 export interface RecipeIngredient {
   name: string;
@@ -113,6 +136,9 @@ export interface RecipeDetailResponse {
   cook_time_min?: number;
   difficulty?: string;
   servings: number;
+  image_url?: string;
+  source_name?: string;
+  source_url?: string;
   ingredients: RecipeIngredient[];
   steps: RecipeStep[];
   target_diseases: string[];

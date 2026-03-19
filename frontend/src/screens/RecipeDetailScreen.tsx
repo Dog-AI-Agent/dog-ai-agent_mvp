@@ -1,22 +1,114 @@
+// ============================================================
+// S5 — 레시피 상세
+// 우선순위: 재료(양 포함) → 조리 단계 → AI 추천 이유(접기)
+// ============================================================
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, LayoutAnimation, Platform, UIManager } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
 import { getRecipe } from "../api/recipes";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorState from "../components/ErrorState";
-import { parseRecipeDetail } from "../utils/parseSummary";
+import MarkdownRenderer from "../components/MarkdownRenderer";
+import { extractReasonOnly } from "../utils/reorderSummary";
 import type { RecipeDetailResponse } from "../types";
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeDetail">;
 
+// ── 메타 카드 ──
+const MetaItem = ({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon: string;
+}) => (
+  <View
+    style={{
+      flex: 1,
+      alignItems: "center",
+      backgroundColor: "#f8f9fa",
+      borderRadius: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 4,
+    }}
+  >
+    <Text style={{ fontSize: 18 }}>{icon}</Text>
+    <Text style={{ marginTop: 4, fontSize: 11, color: "#6b7280" }}>{label}</Text>
+    <Text style={{ fontSize: 13, fontWeight: "700", color: "#1f2937", marginTop: 2 }}>
+      {value}
+    </Text>
+  </View>
+);
+
+const difficultyLabel = (d?: string | null) =>
+  d === "easy" ? "쉬움" : d === "medium" ? "보통" : d === "hard" ? "어려움" : "—";
+
+// ── AI 가이드 (접기/펼치기) ──
+// hasDbSteps=true  → 추천 이유 섹션만 접어서 표시
+// hasDbSteps=false → LLM 전체(재료+조리법+추천이유) 표시
+const CollapsibleAiGuide = ({
+  summary,
+  hasDbSteps,
+}: {
+  summary: string;
+  hasDbSteps: boolean;
+}) => {
+  const [expanded, setExpanded] = useState(!hasDbSteps); // DB steps 없으면 기본 펼침
+
+  // DB steps가 있으면 추천이유 섹션만, 없으면 전체 LLM 출력
+  const displayContent = hasDbSteps ? extractReasonOnly(summary) : summary;
+
+  const toggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((v) => !v);
+  };
+
+  const label = hasDbSteps ? "💡 AI 추천 이유" : "🍳 AI 레시피 가이드";
+
+  return (
+    <View style={{ backgroundColor: "#eef1ff", borderRadius: 16, overflow: "hidden" }}>
+      {/* 헤더 탭 */}
+      <Pressable
+        onPress={toggle}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+        }}
+      >
+        <Text style={{ fontSize: 13, fontWeight: "700", color: "#4361ee" }}>{label}</Text>
+        <Text style={{ fontSize: 12, color: "#6b7280" }}>
+          {expanded ? "접기 ▲" : "펼치기 ▼"}
+        </Text>
+      </Pressable>
+
+      {/* 본문 */}
+      {expanded && (
+        <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+          <MarkdownRenderer content={displayContent} />
+        </View>
+      )}
+    </View>
+  );
+};
+
+// ── 메인 화면 ──
 const RecipeDetailScreen = ({ navigation, route }: Props) => {
   const { recipeId, breedId } = route.params;
   const [recipe, setRecipe] = useState<RecipeDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [checked, setChecked] = useState<Set<number>>(new Set());
+
 
   useEffect(() => {
     setLoading(true);
@@ -27,15 +119,6 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
       )
       .finally(() => setLoading(false));
   }, [recipeId, breedId]);
-
-  const toggleIngredient = (idx: number) => {
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
-      return next;
-    });
-  };
 
   if (loading) {
     return (
@@ -49,196 +132,214 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
     return (
       <SafeAreaView className="flex-1 bg-white px-6 justify-center">
         <ErrorState message={error} />
+        <Pressable
+          className="mt-4 rounded-xl bg-gray-100 px-6 py-3 active:opacity-80"
+          onPress={() => navigation.goBack()}
+        >
+          <Text className="text-center font-semibold text-muted">뒤로가기</Text>
+        </Pressable>
       </SafeAreaView>
     );
   }
 
   if (!recipe) return null;
 
-  const detail = recipe.summary ? parseRecipeDetail(recipe.summary) : null;
-
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView contentContainerClassName="px-6 py-4 gap-4">
-        <Text className="text-center text-2xl font-bold text-gray-800">
-          {recipe.title}
-        </Text>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 20, gap: 20 }}
+        showsVerticalScrollIndicator={false}
+      >
 
-        {/* LLM Detail */}
-        {detail && (
-          <View className="gap-3">
-            {!!detail.message && (
-              <View className="rounded-xl bg-blue-50 px-4 py-4">
-                <Text className="text-sm leading-5 text-gray-700">
-                  {detail.message}
-                </Text>
-              </View>
-            )}
+        {/* ① 제목 + 유전병 태그 */}
+        <View style={{ gap: 8, alignItems: "center" }}>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: "#1f2937", textAlign: "center" }}>
+            {recipe.title}
+          </Text>
+          {recipe.target_diseases.length > 0 && (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 }}>
+              {recipe.target_diseases.map((d, i) => (
+                <View
+                  key={i}
+                  style={{
+                    backgroundColor: "#fef2f2",
+                    borderRadius: 20,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                  }}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: "600", color: "#dc2626" }}>{d}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
 
-            {detail.ingredientDetails.length > 0 && (
-              <View className="gap-2">
-                <Text className="text-lg font-bold text-gray-800">
-                  재료별 효능
-                </Text>
-                {detail.ingredientDetails.map((ing, idx) => (
-                  <View key={idx} className="rounded-xl bg-card px-4 py-4 gap-2">
-                    <View className="flex-row items-center gap-3">
-                      <View className="h-7 w-7 items-center justify-center rounded-full bg-primary">
-                        <Text className="text-xs font-bold text-white">
-                          {idx + 1}
+        {/* ② 메타 정보 (조리시간 · 칼로리 · 난이도 · 인분) */}
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <MetaItem
+            icon="⏱"
+            label="조리시간"
+            value={recipe.cook_time_min != null ? `${recipe.cook_time_min}분` : "—"}
+          />
+          <MetaItem
+            icon="🔥"
+            label="칼로리"
+            value={
+              recipe.calories_per_serving != null
+                ? `${recipe.calories_per_serving}kcal`
+                : "—"
+            }
+          />
+          <MetaItem icon="📊" label="난이도" value={difficultyLabel(recipe.difficulty)} />
+          <MetaItem icon="🍽" label="인분" value={`${recipe.servings}인분`} />
+        </View>
+
+        {/* ③ 재료 */}
+        {recipe.ingredients.length > 0 && (
+          <View style={{ gap: 10 }}>
+            {/* 섹션 헤더 */}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Text style={{ fontSize: 16, fontWeight: "800", color: "#1f2937" }}>재료</Text>
+              <View style={{ flex: 1, height: 1.5, backgroundColor: "#e5e7eb", borderRadius: 1 }} />
+            </View>
+
+            <View style={{ gap: 6 }}>
+              {recipe.ingredients
+                .slice()
+                .sort((a, b) => a.sort_order - b.sort_order)
+                .map((ing, i) => (
+                  <View
+                    key={i}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#f8f9fa",
+                      borderRadius: 12,
+                      paddingHorizontal: 14,
+                      paddingVertical: 12,
+                    }}
+                  >
+                    {/* 불릿 */}
+                    <View style={{
+                      width: 6, height: 6, borderRadius: 3,
+                      backgroundColor: "#4361ee", marginRight: 12, flexShrink: 0,
+                    }} />
+
+                    {/* 재료명 */}
+                    <Text style={{ flex: 1, fontSize: 14, fontWeight: "600", color: "#1f2937" }}>
+                      {ing.name}
+                    </Text>
+
+                    {/* 양 — 오른쪽 강조 */}
+                    {ing.amount && (
+                      <View style={{
+                        backgroundColor: "#eef1ff", borderRadius: 8,
+                        paddingHorizontal: 10, paddingVertical: 4,
+                      }}>
+                        <Text style={{ fontSize: 13, fontWeight: "700", color: "#4361ee" }}>
+                          {ing.amount}
                         </Text>
-                      </View>
-                      <Text className="text-base font-semibold text-gray-800">
-                        {ing.name}
-                      </Text>
-                    </View>
-                    {ing.explanations.length > 0 && (
-                      <View className="ml-10 gap-1">
-                        {ing.explanations.map((exp, ei) => (
-                          <Text key={ei} className="text-sm text-gray-600">
-                            • {exp}
-                          </Text>
-                        ))}
                       </View>
                     )}
                   </View>
                 ))}
-              </View>
-            )}
-
-            {!!detail.closing && (
-              <View className="rounded-xl bg-green-50 px-4 py-4">
-                <Text className="mb-1 text-xs font-bold text-green-700">
-                  급여 안내
-                </Text>
-                <Text className="text-sm text-gray-700">{detail.closing}</Text>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Description */}
-        {recipe.description && (
-          <Text className="text-sm text-muted">{recipe.description}</Text>
-        )}
-
-        {/* Info grid */}
-        <View className="flex-row flex-wrap gap-2">
-          {recipe.calories_per_serving != null && (
-            <View className="flex-1 min-w-[45%] rounded-xl bg-card px-3 py-3 items-center">
-              <Text className="text-xs text-muted">칼로리</Text>
-              <Text className="text-base font-semibold text-gray-800">
-                {recipe.calories_per_serving} kcal
-              </Text>
-            </View>
-          )}
-          {recipe.cook_time_min != null && (
-            <View className="flex-1 min-w-[45%] rounded-xl bg-card px-3 py-3 items-center">
-              <Text className="text-xs text-muted">조리 시간</Text>
-              <Text className="text-base font-semibold text-gray-800">
-                {recipe.cook_time_min}분
-              </Text>
-            </View>
-          )}
-          {recipe.difficulty && (
-            <View className="flex-1 min-w-[45%] rounded-xl bg-card px-3 py-3 items-center">
-              <Text className="text-xs text-muted">난이도</Text>
-              <Text className="text-base font-semibold text-gray-800">
-                {recipe.difficulty}
-              </Text>
-            </View>
-          )}
-          <View className="flex-1 min-w-[45%] rounded-xl bg-card px-3 py-3 items-center">
-            <Text className="text-xs text-muted">인분</Text>
-            <Text className="text-base font-semibold text-gray-800">
-              {recipe.servings}인분
-            </Text>
-          </View>
-        </View>
-
-        {/* Target diseases */}
-        {recipe.target_diseases.length > 0 && (
-          <View className="gap-2">
-            <Text className="text-lg font-bold text-gray-800">대상 질병</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {recipe.target_diseases.map((d, i) => (
-                <View key={i} className="rounded-full bg-red-50 px-3 py-1">
-                  <Text className="text-xs text-danger">{d}</Text>
-                </View>
-              ))}
             </View>
           </View>
         )}
 
-        {/* Ingredients checklist */}
-        {recipe.ingredients.length > 0 && (
-          <View className="gap-2">
-            <Text className="text-lg font-bold text-gray-800">재료</Text>
-            {recipe.ingredients.map((ing, i) => (
-              <Pressable
-                key={i}
-                className={`flex-row items-center gap-3 rounded-xl px-4 py-3 ${
-                  checked.has(i) ? "bg-green-50" : "bg-card"
-                }`}
-                onPress={() => toggleIngredient(i)}
-              >
-                <Text className="text-lg">
-                  {checked.has(i) ? "☑" : "☐"}
-                </Text>
-                <Text
-                  className={`flex-1 text-sm ${
-                    checked.has(i) ? "text-gray-400 line-through" : "text-gray-800"
-                  }`}
-                >
-                  {ing.name}
-                </Text>
-                {ing.amount && (
-                  <Text className="text-sm text-muted">{ing.amount}</Text>
-                )}
-              </Pressable>
-            ))}
-          </View>
-        )}
-
-        {/* Steps */}
+        {/* ④ 조리 단계 */}
         {recipe.steps.length > 0 && (
-          <View className="gap-2">
-            <Text className="text-lg font-bold text-gray-800">조리 단계</Text>
-            {recipe.steps.map((step) => (
-              <View
-                key={step.step_number}
-                className="flex-row gap-3 rounded-xl bg-card px-4 py-3"
-              >
-                <View className="h-7 w-7 items-center justify-center rounded-full bg-primary">
-                  <Text className="text-xs font-bold text-white">
-                    {step.step_number}
-                  </Text>
-                </View>
-                <Text className="flex-1 text-sm leading-5 text-gray-700">
-                  {step.instruction}
-                </Text>
-              </View>
-            ))}
+          <View style={{ gap: 10 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Text style={{ fontSize: 16, fontWeight: "800", color: "#1f2937" }}>조리 순서</Text>
+              <View style={{ flex: 1, height: 1.5, backgroundColor: "#e5e7eb", borderRadius: 1 }} />
+            </View>
+
+            <View style={{ gap: 8 }}>
+              {recipe.steps
+                .slice()
+                .sort((a, b) => a.step_number - b.step_number)
+                .map((step) => (
+                  <View
+                    key={step.step_number}
+                    style={{
+                      flexDirection: "row",
+                      gap: 12,
+                      backgroundColor: "#f8f9fa",
+                      borderRadius: 14,
+                      paddingHorizontal: 14,
+                      paddingVertical: 14,
+                    }}
+                  >
+                    {/* 번호 뱃지 */}
+                    <View
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 14,
+                        backgroundColor: "#4361ee",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        marginTop: 1,
+                      }}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: "800", color: "#fff" }}>
+                        {step.step_number}
+                      </Text>
+                    </View>
+
+                    {/* 조리 설명 */}
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontSize: 14,
+                        color: "#374151",
+                        lineHeight: 22,
+                      }}
+                    >
+                      {step.instruction}
+                    </Text>
+                  </View>
+                ))}
+            </View>
           </View>
         )}
 
-        {/* Actions */}
-        <View className="gap-3 pb-4">
+        {/* ⑤ AI 가이드 (DB steps 있으면 추천이유만, 없으면 전체 레시피) */}
+        {recipe.summary && (
+          <CollapsibleAiGuide
+            summary={recipe.summary}
+            hasDbSteps={recipe.steps.length > 0}
+          />
+        )}
+
+        {/* ⑥ 하단 버튼 */}
+        <View style={{ gap: 10, paddingBottom: 8 }}>
           <Pressable
-            className="rounded-xl bg-gray-100 px-6 py-3 active:opacity-80"
+            style={{
+              backgroundColor: "#f3f4f6",
+              borderRadius: 14,
+              paddingVertical: 14,
+            }}
             onPress={() => navigation.goBack()}
           >
-            <Text className="text-center font-semibold text-muted">
+            <Text style={{ textAlign: "center", fontSize: 14, fontWeight: "600", color: "#6b7280" }}>
               뒤로가기
             </Text>
           </Pressable>
           <Pressable
-            className="rounded-xl bg-gray-100 px-6 py-3 active:opacity-80"
+            style={{
+              backgroundColor: "#f3f4f6",
+              borderRadius: 14,
+              paddingVertical: 14,
+            }}
             onPress={() =>
-              navigation.reset({ index: 0, routes: [{ name: "Landing" }] })
+              navigation.reset({ index: 0, routes: [{ name: "Upload" }] })
             }
           >
-            <Text className="text-center font-semibold text-muted">
+            <Text style={{ textAlign: "center", fontSize: 14, fontWeight: "600", color: "#6b7280" }}>
               다른 강아지 분석하기
             </Text>
           </Pressable>
