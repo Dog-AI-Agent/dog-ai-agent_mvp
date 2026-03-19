@@ -58,12 +58,15 @@ def main():
             disease_trans[row["name_en"].strip()] = row["name_ko"].strip()
     print(f"Loaded {len(disease_trans)} disease translations")
 
-    # Load ingredient translation (English -> Korean)
+    # Load ingredient translation (English -> Korean + category)
     ingredient_trans = {}
     with open(INGREDIENT_TRANS_PATH, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            ingredient_trans[row["name_en"].strip()] = row["name_ko"].strip()
+            ingredient_trans[row["name_en"].strip()] = {
+                "name_ko": row["name_ko"].strip(),
+                "category": row.get("category", "").strip(),
+            }
     print(f"Loaded {len(ingredient_trans)} ingredient translations")
 
     csv_rows = []
@@ -130,7 +133,14 @@ def main():
                 if ing:
                     unique_ingredients.add(ing)
 
-    ingredient_records = [{"name_en": ing, "name_ko": ingredient_trans.get(ing, ing)} for ing in sorted(unique_ingredients)]
+    ingredient_records = [
+        {
+            "name_en": ing,
+            "name_ko": ingredient_trans[ing]["name_ko"] if ing in ingredient_trans else ing,
+            "category": ingredient_trans[ing]["category"] if ing in ingredient_trans else None,
+        }
+        for ing in sorted(unique_ingredients)
+    ]
     for i in range(0, len(ingredient_records), BATCH_SIZE):
         batch = ingredient_records[i:i + BATCH_SIZE]
         db.table("ingredients").upsert(batch, on_conflict="name_en").execute()
@@ -231,7 +241,7 @@ def main():
                 ri_records.append({
                     "recipe_id": recipe_id,
                     "ingredient_id": ingredient_id,
-                    "name": ingredient_trans.get(ing, ing),
+                    "name": ingredient_trans[ing]["name_ko"] if ing in ingredient_trans else ing,
                     "sort_order": idx,
                 })
 

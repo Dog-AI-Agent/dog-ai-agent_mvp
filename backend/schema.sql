@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS ingredients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name_en TEXT UNIQUE NOT NULL,
     name_ko TEXT,
+    category TEXT,
     effect_description TEXT,
     created_at TIMESTAMPTZ DEFAULT now()
 );
