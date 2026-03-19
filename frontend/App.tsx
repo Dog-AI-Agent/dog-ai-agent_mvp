@@ -29,7 +29,7 @@ const App = () => (
 const styles = StyleSheet.create({
   webOuter: {
     flex: 1,
-    backgroundColor: "#e8eaf0",
+    backgroundColor: "#1a0000",
     alignItems: "center",
     justifyContent: "flex-start",
   },
