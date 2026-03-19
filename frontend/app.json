@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "댕슐랭",
+    "slug": "daeng-michelin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#4361ee"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "강아지 사진을 촬영하기 위해 카메라 권한이 필요합니다.",
+        "NSPhotoLibraryUsageDescription": "강아지 사진을 선택하기 위해 갤러리 접근 권한이 필요합니다."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#4361ee"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}

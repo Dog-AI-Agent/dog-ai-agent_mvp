@@ -1,0 +1,55 @@
+data/Annotation/
+data/Images/
+embedding_output/
+ai-service/trained_models/
+ai-service/breed/trained_models/
+deprecated/trained_models/
+CLAUDE.md
+.claude/
+ai-service/breed/trained_models/*
+!ai-service/breed/trained_models/
+data/dog-disease/
+ai-service/dog-detection/not_dog
+ai-service/dog-detection/yes_dog
+__pycache__
+.env
+.env
+ai-service/gen-img/output/
+**/__pycache__/
+*/__pycache__/
+***/__pycache__/
+frontend/node_modules/
+test_img/
+
+### Python
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+dist/
+*.egg-info/
+
+### Node / React Native
+node_modules/
+frontend/.expo/
+frontend/dist/
+*.tsbuildinfo
+
+### AI / ML
+*.h5
+*.pt
+*.pth
+*.ckpt
+wandb/
+runs/
+checkpoints/
+
+### General
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+*.swp

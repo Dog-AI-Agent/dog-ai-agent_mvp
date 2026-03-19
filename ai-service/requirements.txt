@@ -1,0 +1,7 @@
+tensorflow>=2.5.0
+tf_keras
+Pillow
+numpy
+fastapi
+uvicorn[standard]
+python-multipart
