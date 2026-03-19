@@ -20,12 +20,15 @@ ai-service/gen-img/output/
 ***/__pycache__/
 frontend/node_modules/
 test_img/
+venv312/
 
 ### Python
 *.pyc
 *.pyo
 .venv/
 venv/
+.venv312/
+venv312/
 .pytest_cache/
 .mypy_cache/
 dist/
@@ -42,6 +45,7 @@ frontend/dist/
 *.pt
 *.pth
 *.ckpt
+.venv312/
 wandb/
 runs/
 checkpoints/
