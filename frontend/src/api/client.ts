@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:8000/api/v1";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+const IS_PROXIED = BASE_URL.includes("/proxy/");
 
 interface RequestOptions {
   method?: string;
@@ -30,7 +31,7 @@ const request = async <T>(path: string, options: RequestOptions = {}): Promise<T
   try {
     const res = await fetch(url, {
       method,
-      headers,
+      headers: { "ngrok-skip-browser-warning": "true", ...(IS_PROXIED ? {} : {}), ...headers },
       body,
       signal: controller.signal,
     });

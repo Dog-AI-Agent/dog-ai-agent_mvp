@@ -2,11 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.routers import ai, breeds, diseases, recommendations, recipes
+from backend.routers.recommendations import lifespan
 
 app = FastAPI(
     title="댕슐랭 (Daeng Michelin) API",
     description="강아지 품종 식별 → 유전병 → 맞춤 레시피 추천 서비스",
-    version="1.0.0",
+    version="2.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -26,7 +28,7 @@ app.include_router(recipes.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    return {"service": "댕슐랭", "version": "1.0.0"}
+    return {"service": "댕슐랭", "version": "2.1.0"}
 
 
 @app.get("/health")
