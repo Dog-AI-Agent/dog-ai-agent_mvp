@@ -1,11 +1,11 @@
+import io
+import base64
 import logging
-import httpx
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from typing import Optional
-from uuid import uuid4
+from PIL import Image as PILImage
 
 from backend.database import get_supabase
-from backend.config import SUPABASE_URL, SUPABASE_SERVICE_KEY, SUPABASE_KEY, SUPABASE_ANON_KEY
 from backend.deps import get_current_user_id
 from backend.models.schemas import (
     AnalysisDeleteRequest,
@@ -20,47 +20,30 @@ from backend.models.schemas import (
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["users"])
 
-STORAGE_BUCKET = "analysis-images"
+# 썸네일 최대 너비/높이 (px) 및 JPEG 압축 품질
+THUMB_MAX_PX = 480
+THUMB_QUALITY = 75
 
 
-async def _upload_image_to_storage(
-    file_path: str, image_data: bytes, content_type: str
-) -> str | None:
+def _compress_image_to_base64(image_data: bytes) -> str | None:
     """
-    Supabase Storage에 이미지 업로드.
-    우선순위: SUPABASE_SERVICE_KEY → SUPABASE_ANON_KEY → SUPABASE_KEY
-    새 키(sb_secret_*, sb_publishable_*)는 JWT가 아니므로 Legacy JWT 키 필요.
+    이미지를 썸네일로 압축한 뒤 base64 data URL로 반환.
+    Supabase Storage JWT 이슈 없이 DB text 컬럼에 직접 저장하기 위해 사용.
     """
-    # 키 우선순위: service key > anon key > publishable key
-    key = SUPABASE_SERVICE_KEY or SUPABASE_ANON_KEY or SUPABASE_KEY
-    upload_url = f"{SUPABASE_URL}/storage/v1/object/{STORAGE_BUCKET}/{file_path}"
-    public_url = f"{SUPABASE_URL}/storage/v1/object/public/{STORAGE_BUCKET}/{file_path}"
-
-    print(f"[STORAGE] 업로드 시도: {upload_url}")
-    print(f"[STORAGE] 키 앞 20자: {key[:20] if key else 'NONE'}")
-    print(f"[STORAGE] 이미지 크기: {len(image_data)} bytes")
-
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                upload_url,
-                content=image_data,
-                headers={
-                    "Authorization": f"Bearer {key}",
-                    "Content-Type": content_type,
-                },
-            )
-        print(f"[STORAGE] 응답 코드: {response.status_code}")
-        print(f"[STORAGE] 응답 내용: {response.text[:300]}")
-
-        if response.status_code in (200, 201):
-            print(f"[STORAGE] 업로드 성공 → {public_url}")
-            return public_url
-        else:
-            print(f"[STORAGE] 업로드 실패!")
-            return None
+        img = PILImage.open(io.BytesIO(image_data))
+        # RGBA / 팔레트 → RGB 변환 (JPEG는 RGBA 미지원)
+        if img.mode in ("RGBA", "P", "LA"):
+            img = img.convert("RGB")
+        # 비율 유지하며 리사이즈
+        img.thumbnail((THUMB_MAX_PX, THUMB_MAX_PX), PILImage.LANCZOS)
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=THUMB_QUALITY, optimize=True)
+        encoded = base64.b64encode(buf.getvalue()).decode("utf-8")
+        print(f"[IMAGE] 압축 완료: {len(buf.getvalue())} bytes → base64 {len(encoded)} chars")
+        return f"data:image/jpeg;base64,{encoded}"
     except Exception as e:
-        print(f"[STORAGE] 예외 발생: {e}")
+        print(f"[IMAGE] 압축 실패: {e}")
         return None
 
 
@@ -212,12 +195,7 @@ async def save_analysis(
         image_data = await image.read()
         print(f"[ANALYSIS] 이미지 수신: {len(image_data)} bytes, type={image.content_type}")
         if image_data:
-            file_ext = (image.filename or "dog.jpg").rsplit(".", 1)[-1].lower()
-            if file_ext not in ("jpg", "jpeg", "png", "webp"):
-                file_ext = "jpg"
-            file_path = f"{user_id}/{uuid4()}.{file_ext}"
-            content_type = image.content_type or "image/jpeg"
-            image_url = await _upload_image_to_storage(file_path, image_data, content_type)
+            image_url = _compress_image_to_base64(image_data)
     else:
         print("[ANALYSIS] 이미지 없음 (image=None)")
 
@@ -230,7 +208,8 @@ async def save_analysis(
         "is_mixed_breed": is_mixed_breed,
         "image_url": image_url,
     }
-    print(f"[ANALYSIS] DB 저장: image_url={image_url}")
+    preview = (image_url[:40] + "...") if image_url and len(image_url) > 40 else image_url
+    print(f"[ANALYSIS] DB 저장: image_url={preview}")
     result = db.table("analysis_history").insert(row).execute()
     if not result.data:
         raise HTTPException(status_code=500, detail="히스토리 저장 중 오류가 발생했습니다.")
