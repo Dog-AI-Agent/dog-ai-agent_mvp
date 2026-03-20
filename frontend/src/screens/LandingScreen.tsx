@@ -14,7 +14,14 @@ const steps = [
 
 const LandingScreen = ({ navigation }: Props) => (
   <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingVertical: 32 }}>
+    <ScrollView
+      contentContainerStyle={{
+        flexGrow: 1,
+        justifyContent: "center",
+        paddingHorizontal: 24,
+        paddingVertical: 32,
+      }}
+    >
       <View className="items-center gap-4">
         <Text className="text-4xl font-bold text-primary">댕슐랭</Text>
         <Text className="text-center text-lg text-gray-700">

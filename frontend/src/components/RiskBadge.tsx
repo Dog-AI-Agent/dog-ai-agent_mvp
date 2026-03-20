@@ -7,7 +7,11 @@ interface Props {
 
 const config: Record<string, { bg: string; text: string; label: string }> = {
   high: { bg: "bg-risk-high", text: "text-risk-high-text", label: "높음" },
-  medium: { bg: "bg-risk-medium", text: "text-risk-medium-text", label: "중간" },
+  medium: {
+    bg: "bg-risk-medium",
+    text: "text-risk-medium-text",
+    label: "중간",
+  },
   low: { bg: "bg-risk-low", text: "text-risk-low-text", label: "낮음" },
 };
 

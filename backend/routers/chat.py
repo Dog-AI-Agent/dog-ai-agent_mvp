@@ -61,17 +61,18 @@ async def send_message(session_id: str, body: ChatMessageRequest):
     sb = get_supabase()
 
     # 세션 존재 확인 + breed_id 조회
+    # FIX: maybe_single() → limit(1) — 결과 없을 때 204 APIError 방지
     session = await run_in_threadpool(
         lambda: sb.table("chat_sessions")
         .select("id, breed_id")
         .eq("id", session_id)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
     if not session.data:
         raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다.")
 
-    breed_id = session.data["breed_id"]
+    breed_id = session.data[0]["breed_id"]  # FIX: 리스트 [0] 접근
 
     # 기존 대화 기록 조회
     history_result = await run_in_threadpool(
@@ -116,11 +117,12 @@ async def get_messages(session_id: str):
     sb = get_supabase()
 
     # 세션 존재 확인
+    # FIX: maybe_single() → limit(1) — 결과 없을 때 204 APIError 방지
     session = await run_in_threadpool(
         lambda: sb.table("chat_sessions")
         .select("id, breed_id")
         .eq("id", session_id)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
     if not session.data:
@@ -136,7 +138,7 @@ async def get_messages(session_id: str):
 
     return ChatHistoryResponse(
         session_id=session_id,
-        breed_id=session.data["breed_id"],
+        breed_id=session.data[0]["breed_id"],  # FIX: 리스트 [0] 접근
         messages=[
             ChatMessageResponse(
                 message_id=m["id"],

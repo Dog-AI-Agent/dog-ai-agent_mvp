@@ -9,12 +9,12 @@ const ChatBubble = ({ message }: Props) => {
   const isUser = message.role === "user";
 
   return (
-    <View className={`flex-row ${isUser ? "justify-end" : "justify-start"} mb-3`}>
+    <View
+      className={`flex-row ${isUser ? "justify-end" : "justify-start"} mb-3`}
+    >
       <View
         className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-          isUser
-            ? "rounded-br-sm bg-primary"
-            : "rounded-bl-sm bg-gray-100"
+          isUser ? "rounded-br-sm bg-primary" : "rounded-bl-sm bg-gray-100"
         }`}
       >
         <Text

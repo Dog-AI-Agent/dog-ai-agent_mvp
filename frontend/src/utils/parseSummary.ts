@@ -19,17 +19,28 @@ const RECIPE_HEADER_NUMBERED_RE = /^#{2,4}\s*(\d+)\.\s*(.+)$/;
 
 type SectionKey = "ingredients" | "reason" | "serving" | "steps" | "none";
 
-const detectSection = (line: string): { key: SectionKey; rest: string } | null => {
+const detectSection = (
+  line: string,
+): { key: SectionKey; rest: string } | null => {
   const stripped = line.replace(/^#{1,4}\s*/, "");
 
   if (/^재료\s*[:/]/.test(stripped))
-    return { key: "ingredients", rest: stripped.replace(/^재료\s*[:/]\s*/, "") };
+    return {
+      key: "ingredients",
+      rest: stripped.replace(/^재료\s*[:/]\s*/, ""),
+    };
   if (/^추천\s*이유\s*[:/]/.test(stripped))
-    return { key: "reason", rest: stripped.replace(/^추천\s*이유\s*[:/]\s*/, "") };
+    return {
+      key: "reason",
+      rest: stripped.replace(/^추천\s*이유\s*[:/]\s*/, ""),
+    };
   if (/^급여량\s*[:/]/.test(stripped))
     return { key: "serving", rest: stripped.replace(/^급여량\s*[:/]\s*/, "") };
   if (/^만드는\s*법\s*[:/]/.test(stripped))
-    return { key: "steps", rest: stripped.replace(/^만드는\s*법\s*[:/]\s*/, "") };
+    return {
+      key: "steps",
+      rest: stripped.replace(/^만드는\s*법\s*[:/]\s*/, ""),
+    };
   return null;
 };
 
@@ -69,7 +80,9 @@ const parseRecipeBlock = (lines: string[]): ParsedRecipe => {
 
     switch (currentSection) {
       case "ingredients":
-        ingredients = ingredients ? ingredients + ", " + bulletStripped : bulletStripped;
+        ingredients = ingredients
+          ? ingredients + ", " + bulletStripped
+          : bulletStripped;
         break;
       case "reason":
         reasonLines.push(bulletStripped);
@@ -200,7 +213,9 @@ export const parseRecipeDetail = (raw: string): ParsedRecipeDetail => {
 
     if (phase === "ingredients" && currentIngredient) {
       if (line.startsWith("-") || line.startsWith("•")) {
-        currentIngredient.explanations.push(line.replace(/^[-•]\s*/, "").trim());
+        currentIngredient.explanations.push(
+          line.replace(/^[-•]\s*/, "").trim(),
+        );
         continue;
       }
       if (line && !numberedMatch) {

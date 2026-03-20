@@ -20,13 +20,17 @@ type Props = NativeStackScreenProps<RootStackParamList, "BreedResult">;
 const InfoCard = ({ label, value }: { label: string; value: string }) => (
   <View className="flex-1 min-w-[45%] items-center rounded-xl bg-card px-3 py-3">
     <Text className="text-xs text-muted">{label}</Text>
-    <Text className="mt-1 text-center text-sm font-semibold text-gray-800">{value}</Text>
+    <Text className="mt-1 text-center text-sm font-semibold text-gray-800">
+      {value}
+    </Text>
   </View>
 );
 
 const BreedResultScreen = ({ navigation, route }: Props) => {
   const { result, imageUri } = route.params;
-  const [breedDetail, setBreedDetail] = useState<BreedDetailResponse | null>(null);
+  const [breedDetail, setBreedDetail] = useState<BreedDetailResponse | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -52,7 +56,11 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingVertical: 16,
+          gap: 16,
+        }}
         showsVerticalScrollIndicator={false}
       >
         {/* 헤더 */}
@@ -80,14 +88,20 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
               <Text className="text-sm text-muted">{result.breed_name_en}</Text>
             </View>
             <View className="items-end gap-1">
-              <Text className="text-lg font-bold text-primary">{confidencePct}%</Text>
+              <Text className="text-lg font-bold text-primary">
+                {confidencePct}%
+              </Text>
               {isPurebred ? (
                 <View className="rounded-full bg-blue-100 px-3 py-1">
-                  <Text className="text-xs font-semibold text-blue-700">순종</Text>
+                  <Text className="text-xs font-semibold text-blue-700">
+                    순종
+                  </Text>
                 </View>
               ) : (
                 <View className="rounded-full bg-yellow-100 px-3 py-1">
-                  <Text className="text-xs font-semibold text-yellow-700">믹스견 추정</Text>
+                  <Text className="text-xs font-semibold text-yellow-700">
+                    믹스견 추정
+                  </Text>
                 </View>
               )}
             </View>
@@ -96,7 +110,8 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
           {!isPurebred && (
             <View className="rounded-lg bg-yellow-50 px-3 py-2">
               <Text className="text-xs text-yellow-700">
-                신뢰도가 기준값 미만이어서 믹스견으로 추정됩니다. Top-1 품종 기준으로 정보를 제공합니다.
+                신뢰도가 기준값 미만이어서 믹스견으로 추정됩니다. Top-1 품종
+                기준으로 정보를 제공합니다.
               </Text>
             </View>
           )}
@@ -114,7 +129,12 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
               label="크기"
               value={
                 breedDetail.size_category
-                  ? { small: "소형", medium: "중형", large: "대형", giant: "초대형" }[breedDetail.size_category] || breedDetail.size_category
+                  ? {
+                      small: "소형",
+                      medium: "중형",
+                      large: "대형",
+                      giant: "초대형",
+                    }[breedDetail.size_category] || breedDetail.size_category
                   : "—"
               }
             />
@@ -134,10 +154,7 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
                   : "—"
               }
             />
-            <InfoCard
-              label="성격"
-              value={breedDetail.temperament || "—"}
-            />
+            <InfoCard label="성격" value={breedDetail.temperament || "—"} />
           </View>
         )}
 

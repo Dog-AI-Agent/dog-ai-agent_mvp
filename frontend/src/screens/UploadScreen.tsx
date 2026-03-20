@@ -2,7 +2,15 @@
 // S1 — 업로드 (Landing + Upload 통합)
 // ============================================================
 import { useState, useCallback } from "react";
-import { View, Text, Pressable, Image, Alert, ScrollView, useWindowDimensions } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  Image,
+  Alert,
+  ScrollView,
+  useWindowDimensions,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -19,7 +27,10 @@ const LOGO = require("../../assets/logo.png") as number;
 
 const UploadScreen = ({ navigation }: Props) => {
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
+  const [imageSize, setImageSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { width: screenWidth } = useWindowDimensions();
@@ -69,16 +80,22 @@ const UploadScreen = ({ navigation }: Props) => {
         setError(
           e.detail?.includes("BREED_MAPPING")
             ? "품종을 확인할 수 없습니다. 다른 사진을 시도해주세요."
-            : "사진에서 강아지를 인식할 수 없습니다. 다른 사진을 시도해주세요."
+            : "사진에서 강아지를 인식할 수 없습니다. 다른 사진을 시도해주세요.",
         );
       } else if (e.status === 400) {
-        setError("지원하지 않는 파일 형식입니다. JPEG, PNG, WebP, BMP, GIF, HEIC 형식을 사용해주세요.");
+        setError(
+          "지원하지 않는 파일 형식입니다. JPEG, PNG, WebP, BMP, GIF, HEIC 형식을 사용해주세요.",
+        );
       } else if (e.status === 413) {
         setError("파일 크기가 너무 큽니다. 10MB 이하 사진을 선택해주세요.");
       } else if (e.status === 429) {
         setError("요청이 너무 많습니다. 잠시 후 다시 시도해주세요.");
       } else {
-        setError(e.detail || e.message || "분석 중 오류가 발생했습니다. 다시 시도해주세요.");
+        setError(
+          e.detail ||
+            e.message ||
+            "분석 중 오류가 발생했습니다. 다시 시도해주세요.",
+        );
       }
     } finally {
       setLoading(false);
@@ -101,9 +118,10 @@ const UploadScreen = ({ navigation }: Props) => {
     ? Math.round(baseWidth * (imageSize.height / imageSize.width))
     : Math.round(baseWidth * 0.75);
   const previewHeight = Math.min(rawHeight, MAX_PREVIEW);
-  const finalWidth = rawHeight > MAX_PREVIEW
-    ? Math.round(baseWidth * (MAX_PREVIEW / rawHeight))
-    : baseWidth;
+  const finalWidth =
+    rawHeight > MAX_PREVIEW
+      ? Math.round(baseWidth * (MAX_PREVIEW / rawHeight))
+      : baseWidth;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -116,12 +134,19 @@ const UploadScreen = ({ navigation }: Props) => {
           <Image
             source={LOGO}
             style={{
-              width: screenWidth * 0.30,
-              height: screenWidth * 0.30 * (9 / 16),
+              width: screenWidth * 0.3,
+              height: screenWidth * 0.3 * (9 / 16),
             }}
             resizeMode="contain"
           />
-          <Text style={{ marginTop: 4, fontSize: 14, color: "#6b7280", letterSpacing: 0.5 }}>
+          <Text
+            style={{
+              marginTop: 4,
+              fontSize: 14,
+              color: "#6b7280",
+              letterSpacing: 0.5,
+            }}
+          >
             사진 한 장으로 우리 강아지 건강 체크
           </Text>
         </View>
@@ -140,11 +165,18 @@ const UploadScreen = ({ navigation }: Props) => {
                   borderWidth: 1,
                   borderColor: "#e5e7eb",
                 }}
-                onPress={() => { setImageUri(null); setImageSize(null); }}
+                onPress={() => {
+                  setImageUri(null);
+                  setImageSize(null);
+                }}
               >
                 <Image
                   source={{ uri: imageUri }}
-                  style={{ width: finalWidth, height: previewHeight, backgroundColor: "#ffffff" }}
+                  style={{
+                    width: finalWidth,
+                    height: previewHeight,
+                    backgroundColor: "#ffffff",
+                  }}
                   resizeMode="contain"
                 />
                 <View
@@ -158,14 +190,20 @@ const UploadScreen = ({ navigation }: Props) => {
                     paddingVertical: 5,
                   }}
                 >
-                  <Text style={{ fontSize: 11, color: "#fff" }}>탭하여 재선택</Text>
+                  <Text style={{ fontSize: 11, color: "#fff" }}>
+                    탭하여 재선택
+                  </Text>
                 </View>
               </Pressable>
 
               {error && (
                 <ErrorState
                   message={error}
-                  onRetry={() => { setError(null); setImageUri(null); setImageSize(null); }}
+                  onRetry={() => {
+                    setError(null);
+                    setImageUri(null);
+                    setImageSize(null);
+                  }}
                 />
               )}
 
@@ -178,7 +216,14 @@ const UploadScreen = ({ navigation }: Props) => {
                 }}
                 onPress={handleAnalyze}
               >
-                <Text style={{ fontSize: 17, fontWeight: "800", color: "#fff", letterSpacing: 0.5 }}>
+                <Text
+                  style={{
+                    fontSize: 17,
+                    fontWeight: "800",
+                    color: "#fff",
+                    letterSpacing: 0.5,
+                  }}
+                >
                   🐾 분석하기
                 </Text>
               </Pressable>
@@ -201,7 +246,14 @@ const UploadScreen = ({ navigation }: Props) => {
                 onPress={() => pickImage("gallery")}
               >
                 <Text style={{ fontSize: 40 }}>🖼️</Text>
-                <Text style={{ marginTop: 10, fontSize: 16, fontWeight: "700", color: "#CC1A1A" }}>
+                <Text
+                  style={{
+                    marginTop: 10,
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#CC1A1A",
+                  }}
+                >
                   갤러리에서 선택
                 </Text>
                 <Text style={{ marginTop: 4, fontSize: 12, color: "#9ca3af" }}>
@@ -224,16 +276,20 @@ const UploadScreen = ({ navigation }: Props) => {
                 onPress={() => pickImage("camera")}
               >
                 <Text style={{ fontSize: 36 }}>📷</Text>
-                <Text style={{ marginTop: 8, fontSize: 16, fontWeight: "700", color: "#7b2ff7" }}>
+                <Text
+                  style={{
+                    marginTop: 8,
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#7b2ff7",
+                  }}
+                >
                   카메라로 촬영
                 </Text>
               </Pressable>
 
               {error && (
-                <ErrorState
-                  message={error}
-                  onRetry={() => setError(null)}
-                />
+                <ErrorState message={error} onRetry={() => setError(null)} />
               )}
             </View>
           )}
@@ -243,15 +299,51 @@ const UploadScreen = ({ navigation }: Props) => {
         {!imageUri && (
           <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 10 }}>
             {/* 섹션 헤더 */}
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: "#CC1A1A", borderRadius: 2 }} />
-              <Text style={{ fontSize: 13, fontWeight: "700", color: "#374151" }}>이용 방법</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 4,
+              }}
+            >
+              <View
+                style={{
+                  width: 3,
+                  height: 16,
+                  backgroundColor: "#CC1A1A",
+                  borderRadius: 2,
+                }}
+              />
+              <Text
+                style={{ fontSize: 13, fontWeight: "700", color: "#374151" }}
+              >
+                이용 방법
+              </Text>
             </View>
 
             {[
-              { icon: "📸", title: "사진 업로드", desc: "강아지 사진을 올려주세요", color: "#fff5f5", accent: "#CC1A1A" },
-              { icon: "🔍", title: "AI 품종 분석", desc: "품종과 유전병 위험을 분석합니다", color: "#eff6ff", accent: "#3b82f6" },
-              { icon: "🍲", title: "맞춤 레시피", desc: "건강에 좋은 집밥을 추천해요", color: "#f5f3ff", accent: "#7b2ff7" },
+              {
+                icon: "📸",
+                title: "사진 업로드",
+                desc: "강아지 사진을 올려주세요",
+                color: "#fff5f5",
+                accent: "#CC1A1A",
+              },
+              {
+                icon: "🔍",
+                title: "AI 품종 분석",
+                desc: "품종과 유전병 위험을 분석합니다",
+                color: "#eff6ff",
+                accent: "#3b82f6",
+              },
+              {
+                icon: "🍲",
+                title: "맞춤 레시피",
+                desc: "건강에 좋은 집밥을 추천해요",
+                color: "#f5f3ff",
+                accent: "#7b2ff7",
+              },
             ].map((s, i) => (
               <View
                 key={i}
@@ -266,16 +358,38 @@ const UploadScreen = ({ navigation }: Props) => {
                 }}
               >
                 {/* 번호 뱃지 */}
-                <View style={{
-                  width: 32, height: 32, borderRadius: 16,
-                  backgroundColor: s.accent,
-                  alignItems: "center", justifyContent: "center", flexShrink: 0,
-                }}>
-                  <Text style={{ fontSize: 14, fontWeight: "800", color: "#fff" }}>{i + 1}</Text>
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: s.accent,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: 14, fontWeight: "800", color: "#fff" }}
+                  >
+                    {i + 1}
+                  </Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 13, fontWeight: "700", color: "#1f2937" }}>{s.title}</Text>
-                  <Text style={{ fontSize: 12, color: "#6b7280", marginTop: 1 }}>{s.desc}</Text>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "700",
+                      color: "#1f2937",
+                    }}
+                  >
+                    {s.title}
+                  </Text>
+                  <Text
+                    style={{ fontSize: 12, color: "#6b7280", marginTop: 1 }}
+                  >
+                    {s.desc}
+                  </Text>
                 </View>
                 <Text style={{ fontSize: 20 }}>{s.icon}</Text>
               </View>
@@ -284,9 +398,18 @@ const UploadScreen = ({ navigation }: Props) => {
         )}
 
         {/* ── 하단 ── */}
-        <View style={{ paddingHorizontal: 24, marginTop: "auto", paddingTop: 24 }}>
+        <View
+          style={{ paddingHorizontal: 24, marginTop: "auto", paddingTop: 24 }}
+        >
           <Disclaimer />
-          <Text style={{ marginTop: 8, textAlign: "center", fontSize: 11, color: "#9ca3af" }}>
+          <Text
+            style={{
+              marginTop: 8,
+              textAlign: "center",
+              fontSize: 11,
+              color: "#9ca3af",
+            }}
+          >
             강정민 · 최동원 · 송진우 · 이민혜 · 장승우 · 김재현
           </Text>
         </View>

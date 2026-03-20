@@ -7,12 +7,8 @@
     {
       "breed": "Affenpinscher",
       "url": "https://cidd.discoveryspace.ca/breed/affenpinscher.html",
-      "genetic_disorders": [
-        "Hip dysplasia"
-      ],
-      "other_disorders": [
-        "Cataracts"
-      ]
+      "genetic_disorders": ["Hip dysplasia"],
+      "other_disorders": ["Cataracts"]
     },
     {
       "breed": "Afghan hound",
@@ -42,17 +38,12 @@
         "Pulmonic stenosis",
         "von Willebrand's disease"
       ],
-      "other_disorders": [
-        "Progressive retinal atrophy",
-        "Retinal dysplasia"
-      ]
+      "other_disorders": ["Progressive retinal atrophy", "Retinal dysplasia"]
     },
     {
       "breed": "Akbash dog",
       "url": "https://cidd.discoveryspace.ca/breed/akbash-dog.html",
-      "genetic_disorders": [
-        "Hip dysplasia"
-      ],
+      "genetic_disorders": ["Hip dysplasia"],
       "other_disorders": []
     },
     {
@@ -68,9 +59,7 @@
         "Retinal dysplasia",
         "sebaceous adenitis"
       ],
-      "other_disorders": [
-        "Glaucoma"
-      ]
+      "other_disorders": ["Glaucoma"]
     },
     {
       "breed": "Alaskan malamute",
@@ -103,17 +92,13 @@
     {
       "breed": "American eskimo dog",
       "url": "https://cidd.discoveryspace.ca/breed/american-eskimo-dog.html",
-      "genetic_disorders": [
-        "Pyruvate kinase (PK) deficiency"
-      ],
+      "genetic_disorders": ["Pyruvate kinase (PK) deficiency"],
       "other_disorders": []
     },
     {
       "breed": "American pit bull terrier",
       "url": "https://cidd.discoveryspace.ca/breed/american-pit-bull-terrier.html",
-      "genetic_disorders": [
-        "Demodicosis/ Demodectic mange"
-      ],
+      "genetic_disorders": ["Demodicosis/ Demodectic mange"],
       "other_disorders": [
         "Atopy",
         "Cleft lip/palate",
@@ -132,10 +117,7 @@
         "Disorders of sexual development - sexual reversal",
         "Hip dysplasia"
       ],
-      "other_disorders": [
-        "Cataracts",
-        "Progressive retinal atrophy"
-      ]
+      "other_disorders": ["Cataracts", "Progressive retinal atrophy"]
     },
     {
       "breed": "American water spaniel",
@@ -145,10 +127,7 @@
         "Hip dysplasia",
         "pattern baldness"
       ],
-      "other_disorders": [
-        "Cataracts",
-        "Retinal dysplasia"
-      ]
+      "other_disorders": ["Cataracts", "Retinal dysplasia"]
     },
     {
       "breed": "Australian cattle dog",
@@ -161,9 +140,7 @@
         "Portosystemic shunt",
         "Progressive retinal atrophy"
       ],
-      "other_disorders": [
-        "Retinal dysplasia"
-      ]
+      "other_disorders": ["Retinal dysplasia"]
     },
     {
       "breed": "Australian kelpie",
@@ -197,14 +174,8 @@
     {
       "breed": "Australian terrier",
       "url": "https://cidd.discoveryspace.ca/breed/australian-terrier.html",
-      "genetic_disorders": [
-        "Progressive retinal atrophy",
-        "Retinal dysplasia"
-      ],
-      "other_disorders": [
-        "Progressive retinal atrophy",
-        "Retinal dysplasia"
-      ]
+      "genetic_disorders": ["Progressive retinal atrophy", "Retinal dysplasia"],
+      "other_disorders": ["Progressive retinal atrophy", "Retinal dysplasia"]
     },
     {
       "breed": "Basenji",
@@ -219,16 +190,12 @@
         "Progressive retinal atrophy",
         "Pyruvate kinase (PK) deficiency"
       ],
-      "other_disorders": [
-        "Retinal dysplasia"
-      ]
+      "other_disorders": ["Retinal dysplasia"]
     },
     {
       "breed": "Basset Griffon Vendeen",
       "url": "https://cidd.discoveryspace.ca/breed/basset-griffon-vendeen.html",
-      "genetic_disorders": [
-        "Hip dysplasia"
-      ],
+      "genetic_disorders": ["Hip dysplasia"],
       "other_disorders": []
     },
     {
@@ -302,10 +269,7 @@
         "Chronic hepatitis",
         "Retinal dysplasia"
       ],
-      "other_disorders": [
-        "Glaucoma",
-        "Progressive retinal atrophy"
-      ]
+      "other_disorders": ["Glaucoma", "Progressive retinal atrophy"]
     },
     {
       "breed": "Belgian Malinois",
@@ -326,9 +290,7 @@
         "Progressive retinal atrophy",
         "X-linked muscular dystrophy"
       ],
-      "other_disorders": [
-        "Retinal dysplasia"
-      ]
+      "other_disorders": ["Retinal dysplasia"]
     },
     {
       "breed": "Belgian Tervuren",
@@ -339,9 +301,7 @@
         "Pannus - chronic superficial keratitis",
         "vitiligo"
       ],
-      "other_disorders": [
-        "Progressive retinal atrophy"
-      ]
+      "other_disorders": ["Progressive retinal atrophy"]
     },
     {
       "breed": "Bernese mountain dog",
@@ -360,9 +320,7 @@
         "Subaortic stenosis",
         "colour dilution alopecia"
       ],
-      "other_disorders": [
-        "von Willebrand's disease"
-      ]
+      "other_disorders": ["von Willebrand's disease"]
     },
     {
       "breed": "Bichon frise",
@@ -377,28 +335,18 @@
         "Urolithiasis (stones)",
         "congenital hypotrichosis"
       ],
-      "other_disorders": [
-        "Idiopathic epilepsy"
-      ]
+      "other_disorders": ["Idiopathic epilepsy"]
     },
     {
       "breed": "Black and tan coonhound",
       "url": "https://cidd.discoveryspace.ca/breed/black-and-tan-coonhound.html",
-      "genetic_disorders": [
-        "Entropion",
-        "Hip dysplasia"
-      ],
-      "other_disorders": [
-        "Hemophilia",
-        "Progressive retinal atrophy"
-      ]
+      "genetic_disorders": ["Entropion", "Hip dysplasia"],
+      "other_disorders": ["Hemophilia", "Progressive retinal atrophy"]
     },
     {
       "breed": "Black Russian terrier",
       "url": "https://cidd.discoveryspace.ca/breed/black-russian-terrier.html",
-      "genetic_disorders": [
-        "Urolithiasis (stones)"
-      ],
+      "genetic_disorders": ["Urolithiasis (stones)"],
       "other_disorders": []
     },
     {
@@ -424,9 +372,7 @@
         "Globoid cell leukodystrophy (galactocerebrosidosis)",
         "Hip dysplasia"
       ],
-      "other_disorders": [
-        "Cataracts"
-      ]
+      "other_disorders": ["Cataracts"]
     },
     {
       "breed": "Border collie",
@@ -442,21 +388,13 @@
         "Pannus - chronic superficial keratitis",
         "Progressive retinal atrophy"
       ],
-      "other_disorders": [
-        "Idiopathic epilepsy"
-      ]
+      "other_disorders": ["Idiopathic epilepsy"]
     },
     {
       "breed": "Border terrier",
       "url": "https://cidd.discoveryspace.ca/breed/border-terrier.html",
-      "genetic_disorders": [
-        "Cataracts",
-        "Retinal dysplasia"
-      ],
-      "other_disorders": [
-        "Fanconi syndrome",
-        "Progressive retinal atrophy"
-      ]
+      "genetic_disorders": ["Cataracts", "Retinal dysplasia"],
+      "other_disorders": ["Fanconi syndrome", "Progressive retinal atrophy"]
     },
     {
       "breed": "Borzoi",
@@ -468,10 +406,7 @@
         "Progressive retinal atrophy",
         "Tricuspid valve dysplasia"
       ],
-      "other_disorders": [
-        "Cataracts",
-        "Hypothyroidism"
-      ]
+      "other_disorders": ["Cataracts", "Hypothyroidism"]
     },
     {
       "breed": "Boston terrier",
@@ -513,9 +448,7 @@
         "Laryngeal paralysis",
         "Megaesophagus"
       ],
-      "other_disorders": [
-        "Gastric dilatation-volvulus"
-      ]
+      "other_disorders": ["Gastric dilatation-volvulus"]
     },
     {
       "breed": "Boxer",
@@ -561,9 +494,7 @@
         "Hip dysplasia",
         "Progressive retinal atrophy"
       ],
-      "other_disorders": [
-        "Hyperlipoproteinemia"
-      ]
+      "other_disorders": ["Hyperlipoproteinemia"]
     },
     {
       "breed": "Brittany",
@@ -592,10 +523,7 @@
         "Chiari-like malformation (CM) and syringomyelia (SM)",
         "Progressive retinal atrophy"
       ],
-      "other_disorders": [
-        "Corneal dystrophy",
-        "Hip dysplasia"
-      ]
+      "other_disorders": ["Corneal dystrophy", "Hip dysplasia"]
     },
     {
       "breed": "Bull mastiff",
@@ -608,9 +536,7 @@
         "Hip dysplasia",
         "Retinal dysplasia"
       ],
-      "other_disorders": [
-        "Neuroaxonal dystrophy"
-      ]
+      "other_disorders": ["Neuroaxonal dystrophy"]
     },
     {
       "breed": "Bull Terrier - Miniature",
@@ -635,10 +561,7 @@
         "Mitral valve dysplasia",
         "lethal acrodermatitis"
       ],
-      "other_disorders": [
-        "Histiocytoma",
-        "Progressive retinal atrophy"
-      ]
+      "other_disorders": ["Histiocytoma", "Progressive retinal atrophy"]
     },
     {
       "breed": "Cairn terrier",
@@ -658,9 +581,7 @@
         "Progressive retinal atrophy",
         "Pyruvate kinase (PK) deficiency"
       ],
-      "other_disorders": [
-        "Patellar luxation"
-      ]
+      "other_disorders": ["Patellar luxation"]
     },
     {
       "breed": "Canaan dog",
@@ -686,9 +607,7 @@
         "Progressive retinal atrophy",
         "Retinal dysplasia"
       ],
-      "other_disorders": [
-        "Severe combined immunodeficiency (SCID)"
-      ]
+      "other_disorders": ["Severe combined immunodeficiency (SCID)"]
     },
     {
       "breed": "Cavalier King Charles spaniel",
@@ -722,10 +641,7 @@
         "Progressive retinal atrophy",
         "von Willebrand's disease"
       ],
-      "other_disorders": [
-        "Degenerative myelopathy",
-        "Retinal dysplasia"
-      ]
+      "other_disorders": ["Degenerative myelopathy", "Retinal dysplasia"]
     },
     {
       "breed": "Chihuahua",
@@ -746,11 +662,7 @@
         "colour dilution alopecia",
         "pattern baldness"
       ],
-      "other_disorders": [
-        "Hemophilia",
-        "Neuroaxonal dystrophy",
-        "Spina bifida"
-      ]
+      "other_disorders": ["Hemophilia", "Neuroaxonal dystrophy", "Spina bifida"]
     },
     {
       "breed": "Chow chow",
@@ -889,9 +801,7 @@
     {
       "breed": "Coton de tulear",
       "url": "https://cidd.discoveryspace.ca/breed/coton-de-tulear.html",
-      "genetic_disorders": [
-        "Cerebellar abiotrophy(ataxia)"
-      ],
+      "genetic_disorders": ["Cerebellar abiotrophy(ataxia)"],
       "other_disorders": []
     },
     {
@@ -902,9 +812,7 @@
         "Hip dysplasia",
         "Progressive retinal atrophy"
       ],
-      "other_disorders": [
-        "Ectropion"
-      ]
+      "other_disorders": ["Ectropion"]
     },
     {
       "breed": "Dachshund",
@@ -1056,9 +964,7 @@
     {
       "breed": "English foxhound",
       "url": "https://cidd.discoveryspace.ca/breed/english-foxhound.html",
-      "genetic_disorders": [
-        "Leukodystrophies"
-      ],
+      "genetic_disorders": ["Leukodystrophies"],
       "other_disorders": []
     },
     {
@@ -1110,35 +1016,19 @@
     {
       "breed": "English toy spaniel",
       "url": "https://cidd.discoveryspace.ca/breed/english-toy-spaniel.html",
-      "genetic_disorders": [
-        "Cataracts",
-        "Entropion",
-        "Retinal dysplasia"
-      ],
-      "other_disorders": [
-        "Cleft lip/palate",
-        "Corneal dystrophy"
-      ]
+      "genetic_disorders": ["Cataracts", "Entropion", "Retinal dysplasia"],
+      "other_disorders": ["Cleft lip/palate", "Corneal dystrophy"]
     },
     {
       "breed": "Field spaniel",
       "url": "https://cidd.discoveryspace.ca/breed/field-spaniel.html",
-      "genetic_disorders": [
-        "Hip dysplasia",
-        "Retinal dysplasia"
-      ],
-      "other_disorders": [
-        "Cataracts",
-        "Progressive retinal atrophy"
-      ]
+      "genetic_disorders": ["Hip dysplasia", "Retinal dysplasia"],
+      "other_disorders": ["Cataracts", "Progressive retinal atrophy"]
     },
     {
       "breed": "Finnish spitz",
       "url": "https://cidd.discoveryspace.ca/breed/finnish-spitz.html",
-      "genetic_disorders": [
-        "Diabetes mellitus",
-        "Hip dysplasia"
-      ],
+      "genetic_disorders": ["Diabetes mellitus", "Hip dysplasia"],
       "other_disorders": [
         "Platelet dysfunction (thrombocytopathia, Basset hound thrombopathia)",
         "Shaker dog syndrome"
@@ -1188,10 +1078,7 @@
         "Megaesophagus",
         "Pulmonic stenosis"
       ],
-      "other_disorders": [
-        "Legg-CalvÃ©-Perthes disease",
-        "Tetralogy of Fallot"
-      ]
+      "other_disorders": ["Legg-CalvÃ©-Perthes disease", "Tetralogy of Fallot"]
     },
     {
       "breed": "French bulldog",
@@ -1204,10 +1091,7 @@
         "Intervertebral disk disease",
         "brachycephalic syndrome"
       ],
-      "other_disorders": [
-        "Cataracts",
-        "Hemophilia"
-      ]
+      "other_disorders": ["Cataracts", "Hemophilia"]
     },
     {
       "breed": "German shepherd",
@@ -1279,21 +1163,13 @@
         "lupoid dermatosis",
         "von Willebrand's disease"
       ],
-      "other_disorders": [
-        "X-linked muscular dystrophy"
-      ]
+      "other_disorders": ["X-linked muscular dystrophy"]
     },
     {
       "breed": "German wirehaired pointer",
       "url": "https://cidd.discoveryspace.ca/breed/german-wirehaired-pointer.html",
-      "genetic_disorders": [
-        "Entropion",
-        "Hip dysplasia"
-      ],
-      "other_disorders": [
-        "Cataracts",
-        "von Willebrand's disease"
-      ]
+      "genetic_disorders": ["Entropion", "Hip dysplasia"],
+      "other_disorders": ["Cataracts", "von Willebrand's disease"]
     },
     {
       "breed": "Golden retriever",
@@ -1338,9 +1214,7 @@
         "Progressive retinal atrophy",
         "Retinal dysplasia"
       ],
-      "other_disorders": [
-        "Keratoconjunctivitis sicca (KCS) - \"dry eye\""
-      ]
+      "other_disorders": ["Keratoconjunctivitis sicca (KCS) - \"dry eye\""]
     },
     {
       "breed": "Great Dane",
@@ -1387,9 +1261,7 @@
         "Platelet dysfunction (thrombocytopathia, Basset hound thrombopathia)",
         "Tricuspid valve dysplasia"
       ],
-      "other_disorders": [
-        "Optic nerve hypoplasia and micropapilla"
-      ]
+      "other_disorders": ["Optic nerve hypoplasia and micropapilla"]
     },
     {
       "breed": "Greater Swiss mountain dog",
@@ -1412,9 +1284,7 @@
         "Progressive retinal atrophy",
         "pattern baldness"
       ],
-      "other_disorders": [
-        "Histiocytoma"
-      ]
+      "other_disorders": ["Histiocytoma"]
     },
     {
       "breed": "Harrier",
@@ -1431,24 +1301,14 @@
     {
       "breed": "Havanese",
       "url": "https://cidd.discoveryspace.ca/breed/havanese.html",
-      "genetic_disorders": [
-        "Cataracts"
-      ],
-      "other_disorders": [
-        "Progressive retinal atrophy",
-        "Retinal dysplasia"
-      ]
+      "genetic_disorders": ["Cataracts"],
+      "other_disorders": ["Progressive retinal atrophy", "Retinal dysplasia"]
     },
     {
       "breed": "Ibizan hound",
       "url": "https://cidd.discoveryspace.ca/breed/ibizan-hound.html",
-      "genetic_disorders": [
-        "Deafness",
-        "Degenerative myelopathy"
-      ],
-      "other_disorders": [
-        "Cataracts"
-      ]
+      "genetic_disorders": ["Deafness", "Degenerative myelopathy"],
+      "other_disorders": ["Cataracts"]
     },
     {
       "breed": "Irish setter",
@@ -1494,9 +1354,7 @@
         "Urolithiasis (stones)",
         "X-linked muscular dystrophy"
       ],
-      "other_disorders": [
-        "Progressive retinal atrophy"
-      ]
+      "other_disorders": ["Progressive retinal atrophy"]
     },
     {
       "breed": "Irish water spaniel",
@@ -1506,9 +1364,7 @@
         "Follicular dysplasias",
         "Hip dysplasia"
       ],
-      "other_disorders": [
-        "Progressive retinal atrophy"
-      ]
+      "other_disorders": ["Progressive retinal atrophy"]
     },
     {
       "breed": "Irish wolfhound",
@@ -1524,10 +1380,7 @@
         "Hip dysplasia",
         "Portosystemic shunt"
       ],
-      "other_disorders": [
-        "Hypothyroidism",
-        "Retinal dysplasia"
-      ]
+      "other_disorders": ["Hypothyroidism", "Retinal dysplasia"]
     },
     {
       "breed": "Italian greyhound",
@@ -1538,10 +1391,7 @@
     {
       "breed": "Japanese Chin",
       "url": "https://cidd.discoveryspace.ca/breed/japanese-chin.html",
-      "genetic_disorders": [
-        "Cataracts",
-        "Entropion"
-      ],
+      "genetic_disorders": ["Cataracts", "Entropion"],
       "other_disorders": [
         "Corneal dystrophy",
         "Mitral valve dysplasia",
@@ -1551,10 +1401,7 @@
     {
       "breed": "Karelien bear dog",
       "url": "https://cidd.discoveryspace.ca/breed/karelien-bear-dog.html",
-      "genetic_disorders": [
-        "Hip dysplasia",
-        "Pituitary dwarfism"
-      ],
+      "genetic_disorders": ["Hip dysplasia", "Pituitary dwarfism"],
       "other_disorders": []
     },
     {
@@ -1613,10 +1460,7 @@
         "Dermatomyositis and ulcerative dermatosis",
         "Hip dysplasia"
       ],
-      "other_disorders": [
-        "Cataracts",
-        "Deafness"
-      ]
+      "other_disorders": ["Cataracts", "Deafness"]
     },
     {
       "breed": "Labrador retriever",
@@ -1660,9 +1504,7 @@
     {
       "breed": "Lakeland terrier",
       "url": "https://cidd.discoveryspace.ca/breed/lakeland-terrier.html",
-      "genetic_disorders": [
-        "Legg-CalvÃ©-Perthes disease"
-      ],
+      "genetic_disorders": ["Legg-CalvÃ©-Perthes disease"],
       "other_disorders": [
         "Cataracts",
         "Cryptorchidism, retained testicle",
@@ -1672,9 +1514,7 @@
     {
       "breed": "Large Munsterlander",
       "url": "https://cidd.discoveryspace.ca/breed/large-munsterlander.html",
-      "genetic_disorders": [
-        "Urolithiasis (stones)"
-      ],
+      "genetic_disorders": ["Urolithiasis (stones)"],
       "other_disorders": []
     },
     {
@@ -1768,10 +1608,7 @@
         "Pulmonic stenosis",
         "Retinal dysplasia"
       ],
-      "other_disorders": [
-        "Hypothyroidism",
-        "Urolithiasis (stones)"
-      ]
+      "other_disorders": ["Hypothyroidism", "Urolithiasis (stones)"]
     },
     {
       "breed": "Miniature bull terrier",
@@ -1840,13 +1677,8 @@
     {
       "breed": "Norfolk terrier",
       "url": "https://cidd.discoveryspace.ca/breed/norfolk-terrier.html",
-      "genetic_disorders": [
-        "Cataracts"
-      ],
-      "other_disorders": [
-        "Glaucoma",
-        "Optic nerve hypoplasia and micropapilla"
-      ]
+      "genetic_disorders": ["Cataracts"],
+      "other_disorders": ["Glaucoma", "Optic nerve hypoplasia and micropapilla"]
     },
     {
       "breed": "Norwegian elkhound",
@@ -1869,14 +1701,8 @@
     {
       "breed": "Norwich terrier",
       "url": "https://cidd.discoveryspace.ca/breed/norwich-terrier.html",
-      "genetic_disorders": [
-        "Cataracts"
-      ],
-      "other_disorders": [
-        "Atopy",
-        "Corneal dystrophy",
-        "Scotty cramp"
-      ]
+      "genetic_disorders": ["Cataracts"],
+      "other_disorders": ["Atopy", "Corneal dystrophy", "Scotty cramp"]
     },
     {
       "breed": "Nova Scotia duck tolling retriever",
@@ -1925,9 +1751,7 @@
         "Hip dysplasia",
         "Platelet dysfunction (thrombocytopathia, Basset hound thrombopathia)"
       ],
-      "other_disorders": [
-        "Gastric dilatation-volvulus"
-      ]
+      "other_disorders": ["Gastric dilatation-volvulus"]
     },
     {
       "breed": "Papillon",
@@ -1980,9 +1804,7 @@
         "Progressive retinal atrophy",
         "brachycephalic syndrome"
       ],
-      "other_disorders": [
-        "Intervertebral disk disease"
-      ]
+      "other_disorders": ["Intervertebral disk disease"]
     },
     {
       "breed": "Pembroke Welsh corgi",
@@ -2211,26 +2033,14 @@
     {
       "breed": "Puli",
       "url": "https://cidd.discoveryspace.ca/breed/puli.html",
-      "genetic_disorders": [
-        "Cataracts",
-        "Hip dysplasia",
-        "Retinal dysplasia"
-      ],
-      "other_disorders": [
-        "Cataracts",
-        "Retinal dysplasia"
-      ]
+      "genetic_disorders": ["Cataracts", "Hip dysplasia", "Retinal dysplasia"],
+      "other_disorders": ["Cataracts", "Retinal dysplasia"]
     },
     {
       "breed": "Redbone coonhound",
       "url": "https://cidd.discoveryspace.ca/breed/redbone-coonhound.html",
-      "genetic_disorders": [
-        "Entropion",
-        "Hip dysplasia"
-      ],
-      "other_disorders": [
-        "Progressive retinal atrophy"
-      ]
+      "genetic_disorders": ["Entropion", "Hip dysplasia"],
+      "other_disorders": ["Progressive retinal atrophy"]
     },
     {
       "breed": "Rhodesian ridgeback",
@@ -2242,11 +2052,7 @@
         "Hip dysplasia",
         "dermoid sinus"
       ],
-      "other_disorders": [
-        "Cataracts",
-        "Degenerative myelopathy",
-        "Entropion"
-      ]
+      "other_disorders": ["Cataracts", "Degenerative myelopathy", "Entropion"]
     },
     {
       "breed": "Rottweiler",
@@ -2359,10 +2165,7 @@
         "Pemphigus",
         "colour dilution alopecia"
       ],
-      "other_disorders": [
-        "Cataracts",
-        "Progressive retinal atrophy"
-      ]
+      "other_disorders": ["Cataracts", "Progressive retinal atrophy"]
     },
     {
       "breed": "Schnauzer, giant",
@@ -2373,9 +2176,7 @@
         "Retinal dysplasia",
         "Urolithiasis (stones)"
       ],
-      "other_disorders": [
-        "Hypothyroidism"
-      ]
+      "other_disorders": ["Hypothyroidism"]
     },
     {
       "breed": "Schnauzer, miniature",
@@ -2421,10 +2222,7 @@
         "Hip dysplasia",
         "Keratoconjunctivitis sicca (KCS) - \"dry eye\""
       ],
-      "other_disorders": [
-        "Pulmonic stenosis",
-        "Retinal dysplasia"
-      ]
+      "other_disorders": ["Pulmonic stenosis", "Retinal dysplasia"]
     },
     {
       "breed": "Scottish deerhound",
@@ -2493,10 +2291,7 @@
         "cutaneous mucinosis",
         "seborrhea"
       ],
-      "other_disorders": [
-        "Glaucoma",
-        "Lens luxation"
-      ]
+      "other_disorders": ["Glaucoma", "Lens luxation"]
     },
     {
       "breed": "Shetland sheepdog",
@@ -2526,13 +2321,8 @@
     {
       "breed": "Shiba Inu",
       "url": "https://cidd.discoveryspace.ca/breed/shiba-inu.html",
-      "genetic_disorders": [
-        "Hip dysplasia",
-        "Hypothyroidism"
-      ],
-      "other_disorders": [
-        "Hypothyroidism"
-      ]
+      "genetic_disorders": ["Hip dysplasia", "Hypothyroidism"],
+      "other_disorders": ["Hypothyroidism"]
     },
     {
       "breed": "Shih tzu",
@@ -2592,22 +2382,13 @@
         "Leukodystrophies",
         "Patellar luxation"
       ],
-      "other_disorders": [
-        "Cataracts",
-        "colour dilution alopecia"
-      ]
+      "other_disorders": ["Cataracts", "colour dilution alopecia"]
     },
     {
       "breed": "Skye terrier",
       "url": "https://cidd.discoveryspace.ca/breed/skye-terrier.html",
-      "genetic_disorders": [
-        "Chronic hepatitis",
-        "Lens luxation"
-      ],
-      "other_disorders": [
-        "Atopy",
-        "tracheal collapse"
-      ]
+      "genetic_disorders": ["Chronic hepatitis", "Lens luxation"],
+      "other_disorders": ["Atopy", "tracheal collapse"]
     },
     {
       "breed": "Soft coated wheaten terrier",
@@ -2628,9 +2409,7 @@
     {
       "breed": "Sough African Boerboel",
       "url": "https://cidd.discoveryspace.ca/breed/sough-african-boerboel.html",
-      "genetic_disorders": [
-        "Urolithiasis (stones)"
-      ],
+      "genetic_disorders": ["Urolithiasis (stones)"],
       "other_disorders": []
     },
     {
@@ -2641,21 +2420,13 @@
         "Demodicosis/ Demodectic mange",
         "Hip dysplasia"
       ],
-      "other_disorders": [
-        "brachycephalic syndrome"
-      ]
+      "other_disorders": ["brachycephalic syndrome"]
     },
     {
       "breed": "Sussex spaniel",
       "url": "https://cidd.discoveryspace.ca/breed/sussex-spaniel.html",
-      "genetic_disorders": [
-        "Retinal dysplasia"
-      ],
-      "other_disorders": [
-        "Cataracts",
-        "Hip dysplasia",
-        "Pulmonic stenosis"
-      ]
+      "genetic_disorders": ["Retinal dysplasia"],
+      "other_disorders": ["Cataracts", "Hip dysplasia", "Pulmonic stenosis"]
     },
     {
       "breed": "Tibetan spaniel",
@@ -2679,9 +2450,7 @@
         "Lens luxation",
         "Progressive retinal atrophy"
       ],
-      "other_disorders": [
-        "Retinal dysplasia"
-      ]
+      "other_disorders": ["Retinal dysplasia"]
     },
     {
       "breed": "Vizsla",
@@ -2693,9 +2462,7 @@
         "Hip dysplasia",
         "sebaceous adenitis"
       ],
-      "other_disorders": [
-        "Progressive retinal atrophy"
-      ]
+      "other_disorders": ["Progressive retinal atrophy"]
     },
     {
       "breed": "Weimaraner",
@@ -2714,9 +2481,7 @@
         "Weimaraner immunodeficiency",
         "sebaceous adenitis"
       ],
-      "other_disorders": [
-        "Pituitary dwarfism"
-      ]
+      "other_disorders": ["Pituitary dwarfism"]
     },
     {
       "breed": "Welsh Corgi, Cardigan",
@@ -2728,9 +2493,7 @@
         "Progressive retinal atrophy",
         "Retinal dysplasia"
       ],
-      "other_disorders": [
-        "Severe combined immunodeficiency (SCID)"
-      ]
+      "other_disorders": ["Severe combined immunodeficiency (SCID)"]
     },
     {
       "breed": "Welsh springer spaniel",
@@ -2741,16 +2504,12 @@
         "Hip dysplasia",
         "Progressive retinal atrophy"
       ],
-      "other_disorders": [
-        "Hypothyroidism"
-      ]
+      "other_disorders": ["Hypothyroidism"]
     },
     {
       "breed": "Welsh terrier",
       "url": "https://cidd.discoveryspace.ca/breed/welsh-terrier.html",
-      "genetic_disorders": [
-        "Lens luxation"
-      ],
+      "genetic_disorders": ["Lens luxation"],
       "other_disorders": [
         "Glaucoma",
         "Idiopathic epilepsy",
@@ -2795,20 +2554,13 @@
         "ectodermal defect",
         "pattern baldness"
       ],
-      "other_disorders": [
-        "Corneal dystrophy",
-        "Progressive retinal atrophy"
-      ]
+      "other_disorders": ["Corneal dystrophy", "Progressive retinal atrophy"]
     },
     {
       "breed": "Wire-haired pointing griffon",
       "url": "https://cidd.discoveryspace.ca/breed/wire-haired-pointing-griffon.html",
-      "genetic_disorders": [
-        "Hip dysplasia"
-      ],
-      "other_disorders": [
-        "Progressive retinal atrophy"
-      ]
+      "genetic_disorders": ["Hip dysplasia"],
+      "other_disorders": ["Progressive retinal atrophy"]
     },
     {
       "breed": "Yorkshire terrier",
@@ -2832,10 +2584,7 @@
         "congenital hypotrichosis",
         "tracheal collapse"
       ],
-      "other_disorders": [
-        "Corneal dystrophy",
-        "dermoid sinus"
-      ]
+      "other_disorders": ["Corneal dystrophy", "dermoid sinus"]
     }
   ]
 }
