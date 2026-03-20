@@ -1,5 +1,53 @@
 # CHANGELOG
 
+## v2.6.0 — 2026-03-20
+
+### 버그 수정
+- **`BreedResultScreen`**: `gradcamUri` params 누락 수정 (화면 크래시 해결)
+- **`ai-service/server.py`**: GradCAM import 에러 traceback 출력 추가
+- **`ai-service/server.py`**: `breed` 경로 sys.path 명시적 추가
+- **`ai-service/.venv`**: 경로 깨진 가상환경 재생성 (Python 3.12 기준)
+- **`ai-service`**: `matplotlib` 패키지 누락 설치
+
+---
+
+## v2.5.0 — 2026-03-20
+
+### 프론트엔드 UI 개선
+- **`UploadScreen`**: 로고 이미지 `width: 100%` + `height: 220` + `cover`로 변경 → 브라우저/기기 크기 무관하게 일정하게 표시
+- **`assets/logo.png`**: 세로형 → 가로형 배너 이미지로 교체 (1536×1024, 3:2)
+- **`types/index.ts`**: `FoodCard`에 `difficulty?: string`, `target_diseases?: string[]` 필드 추가 (타입 오류 수정)
+
+---
+
+## v2.4.0 — 2026-03-20
+
+### 성능 개선 - Lazy Loading
+- **`recommendations.py`**: API 분리 — `GET /recommendations` (DB만 즉시 반환) / `GET /recommendations/summary` (LLM summary 별도)
+- **`RecommendationScreen`**: `CollapsibleSummary` lazy 로딩 — "AI 추천 이유" 버튼 펼칠 때만 LLM 호출, 초기 로딩 속도 대폭 개선
+- **`recommendations.ts`**: `getRecommendationSummary()` API 함수 추가
+
+---
+
+## v2.3.0 — 2026-03-20
+
+### 프론트엔드 UX 개선
+- **`BreedResultScreen`**: 유전병 위험 높음/중간/낮음 섹션별 접기/펼치기 (높음 기본 펼침)
+- **`BreedResultScreen`**: 맞춤 추천 보기 + 다른 강아지 분석하기 하단 sticky 고정
+- **`RecommendationScreen`**: 유전병별 영양소 카드 접기/펼치기 (첫 번째만 기본 펼침)
+- **`RecommendationScreen`**: 뒤로가기 + 다른 강아지 분석하기 하단 sticky 고정
+- **`RecipeDetailScreen`**: 재료 중복 제거 (이름 기준 dedupe)
+- **`RecipeDetailScreen`**: 재료/조리 순서 섹션 접기/펼치기
+- **`RecipeDetailScreen`**: 뒤로가기 + 다른 강아지 분석하기 하단 sticky 고정
+- **`FloatingChatButton`**: 드래그 가능한 플로팅 AI 챗봇 버튼 추가 (품종 분석 후 모든 페이지)
+- **`FloatingChatButton`**: 웹 mouse event / 네이티브 PanResponder 분리 구현
+- **`FloatingChatButton`**: 뒤로가기 버튼 클릭 시 챗봇 오작동 버그 수정 (`dragging.current` 조건 추가)
+- **`BreedResultScreen`**: top3 품종명 한글 표시 (`breed_ko` 필드 연동)
+- **`context/BreedContext`**: 전역 breed 상태 관리 Context 추가
+- **`App.tsx`**: BreedProvider 추가, FloatingChatButton 전역 배치
+
+---
+
 ## v2.2.0 — 2026-03-20
 
 ### 배포 & 인프라

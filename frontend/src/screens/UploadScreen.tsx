@@ -19,6 +19,7 @@ import { recognizeBreed, fetchGradcam } from "../api/ai";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorState from "../components/ErrorState";
 import Disclaimer from "../components/Disclaimer";
+import UserHeader from "../components/UserHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Upload">;
 
@@ -132,22 +133,21 @@ const UploadScreen = ({ navigation }: Props) => {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── 헤더: 로고 ── */}
-        <View style={{ alignItems: "center" }}>
+        {/* ── 헤더: 닉네임 + 로고 ── */}
+        <UserHeader />
+        <View style={{ width: "100%" }}>
           <Image
             source={LOGO}
-            style={{
-              width: screenWidth * 0.3,
-              height: screenWidth * 0.3 * (9 / 16),
-            }}
-            resizeMode="contain"
+            style={{ width: "100%", height: 220 }}
+            resizeMode="cover"
           />
           <Text
             style={{
-              marginTop: 4,
+              marginTop: 8,
               fontSize: 14,
               color: "#6b7280",
               letterSpacing: 0.5,
+              textAlign: "center",
             }}
           >
             사진 한 장으로 우리 강아지 건강 체크

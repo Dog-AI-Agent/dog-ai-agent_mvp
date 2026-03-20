@@ -1,35 +1,53 @@
 import "./global.css";
+import { useEffect } from "react";
 import { Platform, View, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import RootStack from "./src/navigation/RootStack";
+import { BreedProvider } from "./src/context/BreedContext";
+import FloatingChatButton from "./src/components/FloatingChatButton";
 
-// 웹에서 모바일 앱처럼 보이도록 중앙 고정 컨테이너
-const WebShell = ({ children }: { children: React.ReactNode }) => {
-  if (Platform.OS !== "web") return <>{children}</>;
-  return (
-    <View style={styles.webOuter}>
-      <View style={styles.webInner}>{children}</View>
-    </View>
-  );
-};
+// AuthContext가 있으면 사용, 없으면 스킵
+let AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => <>{children}</>;
+let useAuth: () => { login?: (token: string, user: any) => void; isAuthenticated?: boolean } = () => ({});
+try {
+  const authModule = require("./src/context/AuthContext");
+  AuthProvider = authModule.AuthProvider;
+  useAuth = authModule.useAuth;
+} catch (e) {
+  // AuthContext 없으면 패스
+}
 
 const App = () => (
   <SafeAreaProvider>
-    <WebShell>
-      <NavigationContainer>
-        <StatusBar style="dark" />
-        <RootStack />
-      </NavigationContainer>
-    </WebShell>
+    <AuthProvider>
+      <BreedProvider>
+        <NavigationContainer>
+          <StatusBar style="dark" />
+          {Platform.OS === "web" ? (
+            <View style={styles.webOuter}>
+              <View style={styles.webInner}>
+                <RootStack />
+                <FloatingChatButton />
+              </View>
+            </View>
+          ) : (
+            <>
+              <RootStack />
+              <FloatingChatButton />
+            </>
+          )}
+        </NavigationContainer>
+      </BreedProvider>
+    </AuthProvider>
   </SafeAreaProvider>
 );
 
 const styles = StyleSheet.create({
   webOuter: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f0f0f0",
     alignItems: "center",
     justifyContent: "flex-start",
   },
@@ -38,13 +56,9 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 480,
     backgroundColor: "#ffffff",
-    // 카드 그림자
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    // @ts-ignore — web 전용 속성
+    // @ts-ignore
     boxShadow: "0 4px 40px rgba(0,0,0,0.13)",
+    position: "relative",
     overflow: "hidden",
   },
 });
