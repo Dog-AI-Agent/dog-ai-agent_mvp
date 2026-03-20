@@ -3,6 +3,7 @@ import UploadScreen from "../screens/UploadScreen";
 import BreedResultScreen from "../screens/BreedResultScreen";
 import RecommendationScreen from "../screens/RecommendationScreen";
 import RecipeDetailScreen from "../screens/RecipeDetailScreen";
+import ChatScreen from "../screens/ChatScreen";
 import type { BreedRecognitionResponse } from "../types";
 
 export type RootStackParamList = {
@@ -14,6 +15,7 @@ export type RootStackParamList = {
     imageUri?: string;
   };
   RecipeDetail: { recipeId: string; breedId?: string };
+  Chat: { breedId: string; breedNameKo: string; sessionId?: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -30,6 +32,7 @@ const RootStack = () => (
     <Stack.Screen name="BreedResult" component={BreedResultScreen} />
     <Stack.Screen name="Recommendation" component={RecommendationScreen} />
     <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+    <Stack.Screen name="Chat" component={ChatScreen} />
   </Stack.Navigator>
 );
 

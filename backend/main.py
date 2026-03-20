@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import ai, breeds, diseases, recommendations, recipes
+from backend.routers import ai, breeds, chat, diseases, recommendations, recipes
 from backend.routers.recommendations import lifespan
 
 app = FastAPI(
@@ -24,6 +24,7 @@ app.include_router(breeds.router, prefix="/api/v1")
 app.include_router(diseases.router, prefix="/api/v1")
 app.include_router(recommendations.router, prefix="/api/v1")
 app.include_router(recipes.router, prefix="/api/v1")
+app.include_router(chat.router, prefix="/api/v1")
 
 
 @app.get("/")
