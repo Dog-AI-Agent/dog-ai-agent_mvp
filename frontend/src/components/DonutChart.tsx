@@ -15,13 +15,20 @@ const DonutChart = ({ predictions }: DonutChartProps) => {
 
   const slices = [
     ...top3.map((p, i) => ({
-      label: p.breed,
+      label: p.breed_ko || p.breed,
       value: p.probability,
       pct: (p.probability * 100).toFixed(1),
       color: COLORS[i],
     })),
     ...(othersValue > 0.005
-      ? [{ label: "Others", value: othersValue, pct: (othersValue * 100).toFixed(1), color: COLORS[3] }]
+      ? [
+          {
+            label: "Others",
+            value: othersValue,
+            pct: (othersValue * 100).toFixed(1),
+            color: COLORS[3],
+          },
+        ]
       : []),
   ];
 
@@ -81,7 +88,10 @@ const DonutChart = ({ predictions }: DonutChartProps) => {
       <View className="w-full gap-2">
         {slices.map((s, i) => (
           <View key={i} className="flex-row items-center gap-2">
-            <View className="h-3 w-3 rounded-full" style={{ backgroundColor: s.color }} />
+            <View
+              className="h-3 w-3 rounded-full"
+              style={{ backgroundColor: s.color }}
+            />
             <Text className="flex-1 text-sm text-gray-700">{s.label}</Text>
             <Text className="text-sm font-medium text-gray-900">{s.pct}%</Text>
           </View>

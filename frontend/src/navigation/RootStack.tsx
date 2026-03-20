@@ -16,7 +16,7 @@ export type RootStackParamList = {
   Signup: undefined;
   // App
   Upload: undefined;
-  BreedResult: { result: BreedRecognitionResponse; imageUri: string };
+  BreedResult: { result: BreedRecognitionResponse; imageUri: string; gradcamUri?: string };
   Recommendation: {
     breedId: string;
     breedNameKo: string;

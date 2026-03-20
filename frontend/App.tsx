@@ -65,13 +65,37 @@ const App = () => (
         </NavigationContainer>
       </WebShell>
     </AuthProvider>
+import { BreedProvider } from "./src/context/BreedContext";
+import FloatingChatButton from "./src/components/FloatingChatButton";
+
+const App = () => (
+  <SafeAreaProvider>
+    <BreedProvider>
+      <NavigationContainer>
+        <StatusBar style="dark" />
+        {Platform.OS === "web" ? (
+          <View style={styles.webOuter}>
+            {/* webInner 안에 FloatingChatButton 포함 → 앱 화면 기준 위치 */}
+            <View style={styles.webInner}>
+              <RootStack />
+              <FloatingChatButton />
+            </View>
+          </View>
+        ) : (
+          <>
+            <RootStack />
+            <FloatingChatButton />
+          </>
+        )}
+      </NavigationContainer>
+    </BreedProvider>
   </SafeAreaProvider>
 );
 
 const styles = StyleSheet.create({
   webOuter: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f0f0f0",
     alignItems: "center",
     justifyContent: "flex-start",
   },
@@ -80,13 +104,9 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 480,
     backgroundColor: "#ffffff",
-    // 카드 그림자
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    // @ts-ignore — web 전용 속성
+    // @ts-ignore
     boxShadow: "0 4px 40px rgba(0,0,0,0.13)",
+    position: "relative",
     overflow: "hidden",
   },
 });

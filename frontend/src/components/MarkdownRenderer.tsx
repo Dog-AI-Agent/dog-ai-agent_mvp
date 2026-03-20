@@ -20,7 +20,10 @@ const renderInline = (raw: string, baseStyle?: object) => {
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-        <Text key={i} style={[{ fontWeight: "700", color: "#1f2937" }, baseStyle]}>
+        <Text
+          key={i}
+          style={[{ fontWeight: "700", color: "#1f2937" }, baseStyle]}
+        >
           {part.slice(2, -2)}
         </Text>
       );
@@ -39,15 +42,24 @@ const parseLine = (line: string): Block | null => {
 
   // ### 헤더
   if (/^###\s+/.test(trimmed)) {
-    return { type: "h3", text: trimmed.replace(/^###\s+/, "").replace(/\*\*/g, "") };
+    return {
+      type: "h3",
+      text: trimmed.replace(/^###\s+/, "").replace(/\*\*/g, ""),
+    };
   }
   // #### 헤더
   if (/^####\s+/.test(trimmed)) {
-    return { type: "h4", text: trimmed.replace(/^####\s+/, "").replace(/\*\*/g, "") };
+    return {
+      type: "h4",
+      text: trimmed.replace(/^####\s+/, "").replace(/\*\*/g, ""),
+    };
   }
   // ## 헤더 (혹시 있을 경우)
   if (/^##\s+/.test(trimmed)) {
-    return { type: "h3", text: trimmed.replace(/^##\s+/, "").replace(/\*\*/g, "") };
+    return {
+      type: "h3",
+      text: trimmed.replace(/^##\s+/, "").replace(/\*\*/g, ""),
+    };
   }
   // 불릿 리스트
   if (/^[-•*]\s+/.test(trimmed)) {
@@ -56,7 +68,11 @@ const parseLine = (line: string): Block | null => {
   // 번호 리스트
   const numberedMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
   if (numberedMatch) {
-    return { type: "numbered", num: parseInt(numberedMatch[1]), text: numberedMatch[2] };
+    return {
+      type: "numbered",
+      num: parseInt(numberedMatch[1]),
+      text: numberedMatch[2],
+    };
   }
   // 일반 문단
   return { type: "paragraph", text: trimmed };
@@ -72,7 +88,8 @@ export default function MarkdownRenderer({ content }: Props) {
 
     // 연속 spacer 제거
     if (block.type === "spacer") {
-      if (blocks.length === 0 || blocks[blocks.length - 1].type === "spacer") continue;
+      if (blocks.length === 0 || blocks[blocks.length - 1].type === "spacer")
+        continue;
     }
 
     blocks.push(block);
@@ -89,7 +106,10 @@ export default function MarkdownRenderer({ content }: Props) {
         switch (block.type) {
           case "h3":
             return (
-              <View key={i} style={{ marginTop: i === 0 ? 0 : 12, marginBottom: 2 }}>
+              <View
+                key={i}
+                style={{ marginTop: i === 0 ? 0 : 12, marginBottom: 2 }}
+              >
                 <Text
                   style={{
                     fontSize: 15,
@@ -132,7 +152,12 @@ export default function MarkdownRenderer({ content }: Props) {
             return (
               <View
                 key={i}
-                style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, paddingLeft: 4 }}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: 8,
+                  paddingLeft: 4,
+                }}
               >
                 <View
                   style={{
@@ -145,9 +170,18 @@ export default function MarkdownRenderer({ content }: Props) {
                   }}
                 />
                 <Text
-                  style={{ flex: 1, fontSize: 13, color: "#374151", lineHeight: 20 }}
+                  style={{
+                    flex: 1,
+                    fontSize: 13,
+                    color: "#374151",
+                    lineHeight: 20,
+                  }}
                 >
-                  {renderInline(block.text, { fontSize: 13, color: "#374151", lineHeight: 20 })}
+                  {renderInline(block.text, {
+                    fontSize: 13,
+                    color: "#374151",
+                    lineHeight: 20,
+                  })}
                 </Text>
               </View>
             );
@@ -156,7 +190,12 @@ export default function MarkdownRenderer({ content }: Props) {
             return (
               <View
                 key={i}
-                style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, paddingLeft: 4 }}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: 8,
+                  paddingLeft: 4,
+                }}
               >
                 <View
                   style={{
@@ -170,14 +209,25 @@ export default function MarkdownRenderer({ content }: Props) {
                     flexShrink: 0,
                   }}
                 >
-                  <Text style={{ fontSize: 11, fontWeight: "700", color: "#fff" }}>
+                  <Text
+                    style={{ fontSize: 11, fontWeight: "700", color: "#fff" }}
+                  >
                     {block.num}
                   </Text>
                 </View>
                 <Text
-                  style={{ flex: 1, fontSize: 13, color: "#374151", lineHeight: 20 }}
+                  style={{
+                    flex: 1,
+                    fontSize: 13,
+                    color: "#374151",
+                    lineHeight: 20,
+                  }}
                 >
-                  {renderInline(block.text, { fontSize: 13, color: "#374151", lineHeight: 20 })}
+                  {renderInline(block.text, {
+                    fontSize: 13,
+                    color: "#374151",
+                    lineHeight: 20,
+                  })}
                 </Text>
               </View>
             );
@@ -188,7 +238,11 @@ export default function MarkdownRenderer({ content }: Props) {
                 key={i}
                 style={{ fontSize: 13, color: "#4b5563", lineHeight: 20 }}
               >
-                {renderInline(block.text, { fontSize: 13, color: "#4b5563", lineHeight: 20 })}
+                {renderInline(block.text, {
+                  fontSize: 13,
+                  color: "#4b5563",
+                  lineHeight: 20,
+                })}
               </Text>
             );
 

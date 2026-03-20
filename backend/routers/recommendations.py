@@ -18,6 +18,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.concurrency import run_in_threadpool
 from postgrest.exceptions import APIError as PostgrestAPIError
+from pydantic import BaseModel
 
 from backend.database import get_supabase
 from backend.models.schemas import (
@@ -428,10 +429,36 @@ async def get_recommendations(
         pattern=r"^[a-zA-Z0-9_-]+$",
     ),
 ):
+    """DB 데이터만 즉시 반환 (LLM summary 제외 → 빠름)"""
     data = await run_in_threadpool(_sync_get_recommendations, breed_id)
 
-    summary = data["summary"]
+    return RecommendationResponse(
+        breed_name_ko=data["breed_name_ko"],
+        summary="",  # summary는 /summary 엔드포인트에서 별도 요청
+        tab_nutrients=data["tab_nutrients"],
+        tab_foods=data["tab_foods"],
+        recipes=data["recipes"],
+    )
+
+
+class SummaryResponse(BaseModel):
+    summary: str
+
+
+@router.get("/summary")
+async def get_summary(
+    breed_id: str = Query(
+        ...,
+        description="Breed ID (required)",
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-zA-Z0-9_-]+$",
+    ),
+) -> SummaryResponse:
+    """LLM summary만 반환 (느림 → 프론트에서 lazy 호출)"""
+    data = await run_in_threadpool(_sync_get_recommendations, breed_id)
     recipes = data["recipes"]
+    summary = data.get("summary") or ""
 
     if not summary:
         try:
@@ -445,22 +472,10 @@ async def get_recommendations(
                 timeout=SUMMARY_TIMEOUT_SECONDS,
             )
         except asyncio.TimeoutError:
-            logger.warning(
-                "Summary generation timed out for breed %s after %ds",
-                data["breed_name_ko"],
-                SUMMARY_TIMEOUT_SECONDS,
-            )
+            logger.warning("Summary timed out for breed %s", data["breed_name_ko"])
             summary = f"{data['breed_name_ko']}에 대한 맞춤 건강 정보입니다."
         except Exception:
-            logger.exception(
-                "Summary generation failed for breed %s", data["breed_name_ko"]
-            )
+            logger.exception("Summary failed for breed %s", data["breed_name_ko"])
             summary = f"{data['breed_name_ko']}에 대한 맞춤 건강 정보입니다."
 
-    return RecommendationResponse(
-        breed_name_ko=data["breed_name_ko"],
-        summary=summary,
-        tab_nutrients=data["tab_nutrients"],
-        tab_foods=data["tab_foods"],
-        recipes=recipes,
-    )
+    return SummaryResponse(summary=summary)

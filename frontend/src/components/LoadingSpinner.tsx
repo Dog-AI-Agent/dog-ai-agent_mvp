@@ -10,7 +10,8 @@ const LoadingSpinner = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const message = elapsed < 10 ? "AI가 분석 중입니다..." : "조금만 기다려주세요";
+  const message =
+    elapsed < 10 ? "AI가 분석 중입니다..." : "조금만 기다려주세요";
 
   return (
     <View className="flex-1 items-center justify-center gap-5 px-6">

@@ -57,10 +57,12 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+.expo/
 
 # 설정 파일 및 API 클라이언트 제외
 .env.example
 frontend/src/api/client.ts
+.forge-log
 
 # 패키지 잠금 파일 제외 (루트 및 백엔드)
 package-lock.json

@@ -105,6 +105,23 @@ async def detect_and_classify(file: UploadFile = File(...)):
     }
 
 
+@app.post("/gradcam")
+async def gradcam(file: UploadFile = File(...)):
+    try:
+        from gradcam import generate_gradcam_image
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"GradCAM 모듈 로드 실패: {e}")
+
+    contents = await file.read()
+    try:
+        pil_image = Image.open(io.BytesIO(contents))
+        b64 = generate_gradcam_image(pil_image)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"GradCAM 생성 실패: {str(e)}")
+
+    return {"gradcam_image_b64": b64}
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}

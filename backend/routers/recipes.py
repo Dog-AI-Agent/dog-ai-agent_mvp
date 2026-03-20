@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 
@@ -87,12 +88,39 @@ async def get_recipe(
         except Exception:
             continue
 
-    # ── LLM summary ──
-    summary = None
+    # ── size_category 기반 칼로리 계산 ──
+    size_category = None
+    calories_by_size: Optional[int] = recipe.get("calories_per_serving")
+
     if breed_id:
         breed_result = db.table("breeds").select("name_ko, size_category").eq("id", breed_id).execute()
         if breed_result.data:
             breed = breed_result.data[0]
+            size_category = breed.get("size_category")  # small / medium / large / giant
+
+            # 재료별 칼로리 합산 (size 기준, 중복 재료 제거)
+            size_col = {
+                "small": "calories_small",
+                "medium": "calories_medium",
+                "large": "calories_large",
+                "giant": "calories_large",
+            }.get(size_category, "calories_medium")
+
+            # 같은 이름 재료 중복 제거 후 합산
+            seen = {}
+            for ing in ingredients:
+                if ing.name not in seen:
+                    seen[ing.name] = getattr(ing, size_col, 0) or 0
+            total = sum(seen.values())
+            if total > 0:
+                calories_by_size = total
+
+    # ── LLM summary ──
+    summary = None
+    if breed_id:
+        breed_result2 = db.table("breeds").select("name_ko, size_category").eq("id", breed_id).execute()
+        if breed_result2.data:
+            breed = breed_result2.data[0]
             summary = await generate_recipe_summary(
                 recipe_title_ko=title,
                 ingredient_names=[ing.name for ing in ingredients],
@@ -101,11 +129,46 @@ async def get_recipe(
                 disease_names=target_diseases,
             )
 
+    # ── LLM 재료 g수 파싱 → 칼로리 재계산 ──
+    if summary and calories_by_size is not None:
+        # 재료 칼로리 인덱스 (name -> calories_per_100g)
+        cal_index = {ing.name: ing.calories_per_100g for ing in ingredients if ing.calories_per_100g > 0}
+
+        # LLM 응답에서 ### 재료 섹션 파싱
+        # 예: "- 연어: 150g", "- 블루베리: 50g"
+        section_match = re.search(r'###\s*재료\s*\n(.*?)(?=###|$)', summary, re.DOTALL)
+        if section_match:
+            section = section_match.group(1)
+            llm_cal_total = 0
+            found = False
+            for line in section.split('\n'):
+                # "- 재료명: 숫자g" 또는 "- 재료명: 숫자~숫자g" 패턴
+                m = re.search(r'[\-•]?\s*([가-힣a-zA-Z\s]+?)\s*:\s*(\d+)(?:~(\d+))?\s*g', line)
+                if m:
+                    name = m.group(1).strip()
+                    g1 = int(m.group(2))
+                    g2 = int(m.group(3)) if m.group(3) else g1
+                    avg_g = (g1 + g2) / 2
+
+                    # 재료명으로 칼로리 검색 (부분 일치)
+                    matched_cal = 0
+                    for ing_name, cal in cal_index.items():
+                        if ing_name in name or name in ing_name:
+                            matched_cal = cal
+                            break
+
+                    if matched_cal > 0 and avg_g > 0:
+                        llm_cal_total += int(matched_cal * avg_g / 100)
+                        found = True
+
+            if found and llm_cal_total > 0:
+                calories_by_size = llm_cal_total
+
     return RecipeDetailResponse(
         recipe_id=recipe["id"],
         title=title,
         description=recipe.get("description"),
-        calories_per_serving=recipe.get("calories_per_serving"),
+        calories_per_serving=calories_by_size,
         cook_time_min=recipe.get("cook_time_min"),
         difficulty=recipe.get("difficulty"),
         servings=recipe.get("servings", 1),

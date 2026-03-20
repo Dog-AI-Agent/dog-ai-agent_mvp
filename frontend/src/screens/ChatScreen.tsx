@@ -13,7 +13,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
 import type { ChatMessage } from "../types";
-import { createChatSession, sendChatMessage, getChatHistory } from "../api/chat";
+import {
+  createChatSession,
+  sendChatMessage,
+  getChatHistory,
+} from "../api/chat";
 import ChatBubble from "../components/ChatBubble";
 import UserHeader from "../components/UserHeader";
 
@@ -21,7 +25,9 @@ type Props = NativeStackScreenProps<RootStackParamList, "Chat">;
 
 const ChatScreen = ({ navigation, route }: Props) => {
   const { breedId, breedNameKo, sessionId: existingSessionId } = route.params;
-  const [sessionId, setSessionId] = useState<string | null>(existingSessionId ?? null);
+  const [sessionId, setSessionId] = useState<string | null>(
+    existingSessionId ?? null,
+  );
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
