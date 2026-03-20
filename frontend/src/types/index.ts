@@ -95,6 +95,8 @@ export interface FoodCard {
   name_ko: string;
   category?: string;
   image_url?: string;
+  difficulty?: string;
+  target_diseases?: string[];
   related_ingredients: string[];
   recipe_ids: string[];
 }

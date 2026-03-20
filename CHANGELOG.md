@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v2.5.0 — 2026-03-20
+
+### 프론트엔드 UI 개선
+- **`UploadScreen`**: 로고 이미지 `width: 100%` + `height: 220` + `cover`로 변경 → 브라우저/기기 크기 무관하게 일정하게 표시
+- **`assets/logo.png`**: 세로형 → 가로형 배너 이미지로 교체 (1536×1024, 3:2)
+- **`types/index.ts`**: `FoodCard`에 `difficulty?: string`, `target_diseases?: string[]` 필드 추가 (타입 오류 수정)
+
+---
+
 ## v2.4.0 — 2026-03-20
 
 ### 성능 개선 - Lazy Loading
