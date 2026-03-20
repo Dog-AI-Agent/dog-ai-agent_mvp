@@ -145,15 +145,6 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
           <Text style={{ fontSize: 22, fontWeight: "800", color: "#1f2937", textAlign: "center" }}>
             {recipe.title}
           </Text>
-          {recipe.target_diseases.length > 0 && (
-            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 }}>
-              {recipe.target_diseases.map((d, i) => (
-                <View key={i} style={{ backgroundColor: "#fef2f2", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
-                  <Text style={{ fontSize: 11, fontWeight: "600", color: "#dc2626" }}>{d}</Text>
-                </View>
-              ))}
-            </View>
-          )}
         </View>
 
         {/* ② 메타 정보 */}

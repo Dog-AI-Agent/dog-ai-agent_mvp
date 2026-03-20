@@ -156,14 +156,8 @@ const FoodCardItem = ({
           >
             {food.name_ko}
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 5,
-              alignItems: "center",
-            }}
-          >
+          {/* 1줄: 난이도 + 시간 */}
+          <View style={{ flexDirection: "row", gap: 5, alignItems: "center" }}>
             <View
               style={{
                 backgroundColor: diffBg,
@@ -189,8 +183,25 @@ const FoodCardItem = ({
                 {diffLabel}
               </Text>
             </View>
-            {food.target_diseases &&
-              food.target_diseases.map((d, i) => (
+            {food.cook_time_min != null && (
+              <View
+                style={{
+                  backgroundColor: "#f1f5f9",
+                  borderRadius: 20,
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                }}
+              >
+                <Text style={{ fontSize: 11, color: "#475569", fontWeight: "600" }}>
+                  ⏱ {food.cook_time_min}분
+                </Text>
+              </View>
+            )}
+          </View>
+          {/* 2줄: 예상 병명 태그 */}
+          {food.target_diseases && food.target_diseases.length > 0 && (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
+              {food.target_diseases.map((d, i) => (
                 <View
                   key={i}
                   style={{
@@ -213,7 +224,8 @@ const FoodCardItem = ({
                   </Text>
                 </View>
               ))}
-          </View>
+            </View>
+          )}
         </View>
 
         {/* 레시피 버튼 */}
@@ -346,14 +358,8 @@ const RecipeCardItem = ({
           >
             {recipe.title}
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 5,
-              alignItems: "center",
-            }}
-          >
+          {/* 1줄: 난이도 + 시간 */}
+          <View style={{ flexDirection: "row", gap: 5, alignItems: "center" }}>
             <View
               style={{
                 backgroundColor: diffBg,
@@ -395,6 +401,10 @@ const RecipeCardItem = ({
                 </Text>
               </View>
             )}
+          </View>
+          {/* 2줄: 예상 병명 태그 */}
+          {recipe.target_diseases && recipe.target_diseases.length > 0 && (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
             {recipe.target_diseases.map((d, i) => (
               <View
                 key={i}
@@ -414,7 +424,8 @@ const RecipeCardItem = ({
                 </Text>
               </View>
             ))}
-          </View>
+            </View>
+          )}
         </View>
 
         {/* 레시피 버튼 */}
