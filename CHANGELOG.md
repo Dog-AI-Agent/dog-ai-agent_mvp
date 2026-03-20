@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## v2.2.0 — 2026-03-20
+
+### 배포 & 인프라
+- **Vercel 배포 연결**: Expo 웹 빌드(`npx expo export --platform web`) Vercel 자동 배포 설정
+- **ngrok CORS 프록시**: Vercel Edge Function(`api/proxy/[...path].js`)으로 ngrok 우회 프록시 구현, `ngrok-skip-browser-warning` 헤더 자동 주입
+- **GitHub 연동**: Dog-AI-Agent 조직 레포 Vercel 자동 배포 연결
+- **루트 vercel.json**: 팀원 공통 빌드 설정 적용 (`buildCommand`, `outputDirectory`, `rewrites`)
+- **DEV_GUIDE.md**: 로컬 개발 환경 설정 가이드 문서 추가
+
+### 백엔드 버그 수정
+- **`recommendations.py`**: `PGRST205` 에러 코드 처리 추가 (schema cache에서 테이블 못 찾는 경우)
+- **`recommendations.py`**: `breeds.summary` 컬럼 없음 오류 수정 → select에서 제거
+- **`recommendations.py`**: `recipes.title` 컬럼 없음 오류 수정 → `title_ko/title_en` 폴백 처리
+- **`recipes.py`**: `size_category` 기반 칼로리 동적 계산 추가 (`calories_small/medium/large`)
+- **`recipes.py`**: 중복 재료 제거 후 칼로리 합산 로직 추가
+- **`recipes.py`**: LLM 응답 `### 재료` 섹션 파싱 → g수 기반 정밀 칼로리 계산
+- **`ai.py`**: `breed_ko` 필드 추가 — top3 품종명 DB에서 한글 변환 후 반환
+- **`schemas.py`**: `TopKPrediction`에 `breed_ko: Optional[str]` 필드 추가
+- **`backend/.venv`**: 경로 깨진 가상환경 재생성 (기존 `D:\dog-dan\backend` 경로 → 현재 경로)
+
+### 데이터
+- **`recipes` 테이블**: `cook_time_min` 요리 유형별 일괄 업데이트 (볼 10분, 스튜 20분, 죽 25분, 사골 120분 등)
+- **`recipes` 테이블**: `calories_per_serving` 재료 칼로리 합산으로 일괄 업데이트 (medium 기준)
+- **`breeds` 테이블**: 120개 품종 `avg_weight_kg`, `avg_life_span_years`, `temperament` 데이터 추가
+- **`data/update_breeds.py`**: 43개 주요 품종 자동 업데이트 스크립트
+- **`data/update_breeds_extra.py`**: 나머지 77개 품종 추가 업데이트 스크립트
+
+### 프론트엔드
+- **`client.ts`**: `EXPO_PUBLIC_API_URL` 환경변수 기반 BASE_URL 설정
+- **`client.ts`**: `ngrok-skip-browser-warning` 헤더 자동 추가
+- **`DonutChart.tsx`**: top3 품종명 한글 우선 표시 (`breed_ko || breed`)
+- **`types/index.ts`**: `TopKPrediction`에 `breed_ko?: string` 추가
+- **`RecipeDetailScreen.tsx`**: 조리시간, 칼로리 표시 (데이터 연동)
+
+---
+
 ## v2.1.0 — 2026-03-19
 
 > **Debate Chain 3-AI 코드 리뷰 적용** (8.0/10 수렴)

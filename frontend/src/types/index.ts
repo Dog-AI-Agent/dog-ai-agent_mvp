@@ -1,6 +1,7 @@
 export interface TopKPrediction {
   rank: number;
   breed: string;
+  breed_ko?: string;
   probability: number;
   probability_pct: string;
 }

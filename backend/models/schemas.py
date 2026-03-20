@@ -44,6 +44,7 @@ class BreedDetailResponse(BaseModel):
 class TopKPrediction(BaseModel):
     rank: int
     breed: str
+    breed_ko: Optional[str] = None
     probability: float
     probability_pct: str
 
