@@ -73,7 +73,7 @@ def _fetch_breed_context(breed_id: str) -> str:
         if disease_ids:
             ingredients = (
                 sb.table("disease_ingredients")
-                .select("effect_description, priority, ingredients(name_ko, category)")
+                .select("priority, ingredients(name_ko, category)")
                 .in_("disease_id", disease_ids)
                 .order("priority", desc=True)
                 .limit(30)
@@ -81,8 +81,7 @@ def _fetch_breed_context(breed_id: str) -> str:
             )
             if ingredients.data:
                 ing_lines = [
-                    f"- {i['ingredients']['name_ko']} (분류: {i['ingredients'].get('category', '?')}, "
-                    f"효과: {i.get('effect_description', '정보 없음')})"
+                    f"- {i['ingredients']['name_ko']} (분류: {i['ingredients'].get('category', '?')})"
                     for i in ingredients.data
                     if i.get("ingredients")
                 ]

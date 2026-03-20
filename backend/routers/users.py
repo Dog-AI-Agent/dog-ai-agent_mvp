@@ -161,8 +161,8 @@ async def update_my_dog(body: DogUpdateRequest, user_id: str = Depends(get_curre
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
 
     if not existing.data:
-        # 없으면 새로 생성
-        new_dog = {"user_id": user_id, **updates}
+        # 없으면 새로 생성 (name NOT NULL 대비 기본값 설정)
+        new_dog = {"user_id": user_id, "name": updates.get("name") or "우리 강아지", **updates}
         result = db.table("dogs").insert(new_dog).execute()
     else:
         if not updates:
