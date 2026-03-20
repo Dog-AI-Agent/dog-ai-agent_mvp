@@ -9,6 +9,26 @@ from backend.models.schemas import BreedRecognitionResponse, TopKPrediction, Ima
 router = APIRouter(prefix="/ai", tags=["AI"])
 
 
+@router.post("/gradcam")
+async def gradcam(file: UploadFile = File(...)):
+    contents, _ = await validate_image(file)
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.post(
+                f"{AI_SERVER_URL}/gradcam",
+                files={"file": (file.filename, contents, file.content_type)},
+            )
+    except httpx.ConnectError:
+        raise HTTPException(status_code=500, detail="AI server is not available.")
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=500, detail="AI server timeout.")
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail="GradCAM 생성 실패.")
+
+    return resp.json()
+
+
 @router.post("/breed-recognition", response_model=BreedRecognitionResponse)
 async def breed_recognition(file: UploadFile = File(...)):
     contents, metadata = await validate_image(file)
