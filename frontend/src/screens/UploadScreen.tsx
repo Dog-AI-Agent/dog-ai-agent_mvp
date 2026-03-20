@@ -11,6 +11,7 @@ import { recognizeBreed } from "../api/ai";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorState from "../components/ErrorState";
 import Disclaimer from "../components/Disclaimer";
+import UserHeader from "../components/UserHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Upload">;
 
@@ -111,7 +112,8 @@ const UploadScreen = ({ navigation }: Props) => {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── 헤더: 로고 ── */}
+        {/* ── 헤더: 닉네임 + 로고 ── */}
+        <UserHeader />
         <View style={{ alignItems: "center" }}>
           <Image
             source={LOGO}

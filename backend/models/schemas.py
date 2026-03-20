@@ -1,5 +1,73 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
+
+
+# ── Auth ──
+
+class SignupRequest(BaseModel):
+    name: str
+    email: EmailStr
+    nickname: str
+    password: str
+    birth_date: Optional[str] = None  # YYYY-MM-DD
+    address: Optional[str] = None
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserResponse(BaseModel):
+    user_id: str
+    name: str
+    email: str
+    nickname: str
+    birth_date: Optional[str] = None
+    address: Optional[str] = None
+    created_at: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+# ── User Update ──
+
+class UserUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    nickname: Optional[str] = None
+    birth_date: Optional[str] = None
+    address: Optional[str] = None
+
+
+# ── Dog ──
+
+class DogCreateRequest(BaseModel):
+    name: str
+    birthday: Optional[str] = None  # YYYY-MM-DD
+    breed_id: Optional[str] = None
+    favorite_ingredients: Optional[list[str]] = None
+
+
+class DogUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    birthday: Optional[str] = None
+    breed_id: Optional[str] = None
+    favorite_ingredients: Optional[list[str]] = None
+
+
+class DogResponse(BaseModel):
+    dog_id: str
+    user_id: str
+    name: str
+    birthday: Optional[str] = None
+    breed_id: Optional[str] = None
+    breed_name_ko: Optional[str] = None
+    favorite_ingredients: list[str] = []
+    created_at: str
 
 
 # ── Breed ──

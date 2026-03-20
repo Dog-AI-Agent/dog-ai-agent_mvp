@@ -13,6 +13,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import EmptyState from "../components/EmptyState";
 import DonutChart from "../components/DonutChart";
 import RiskBadge from "../components/RiskBadge";
+import UserHeader from "../components/UserHeader";
 import type { BreedDetailResponse } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "BreedResult">;
@@ -51,6 +52,7 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <UserHeader />
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}

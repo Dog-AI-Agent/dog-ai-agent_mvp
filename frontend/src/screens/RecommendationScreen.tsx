@@ -24,6 +24,7 @@ import { extractReasonOnly } from "../utils/reorderSummary";
 import { categorizeIngredients, CATEGORY_META } from "../utils/categorizeIngredients";
 import type { IngredientCategory } from "../utils/categorizeIngredients";
 import type { RecommendationResponse } from "../types";
+import UserHeader from "../components/UserHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Recommendation">;
 type TabKey = "nutrients" | "foods";
@@ -126,6 +127,7 @@ const RecommendationScreen = ({ navigation, route }: Props) => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <UserHeader />
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}

@@ -11,6 +11,7 @@ import { getRecipe } from "../api/recipes";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorState from "../components/ErrorState";
 import MarkdownRenderer from "../components/MarkdownRenderer";
+import UserHeader from "../components/UserHeader";
 import { extractReasonOnly } from "../utils/reorderSummary";
 import type { RecipeDetailResponse } from "../types";
 
@@ -146,6 +147,7 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <UserHeader />
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 20, gap: 20 }}
         showsVerticalScrollIndicator={false}

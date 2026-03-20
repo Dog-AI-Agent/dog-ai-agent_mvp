@@ -15,6 +15,7 @@ import type { RootStackParamList } from "../navigation/RootStack";
 import type { ChatMessage } from "../types";
 import { createChatSession, sendChatMessage, getChatHistory } from "../api/chat";
 import ChatBubble from "../components/ChatBubble";
+import UserHeader from "../components/UserHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Chat">;
 
@@ -108,6 +109,7 @@ const ChatScreen = ({ navigation, route }: Props) => {
               이 품종에 대해 궁금한 점을 물어보세요
             </Text>
           </View>
+          <UserHeader />
         </View>
 
         {/* 메시지 목록 */}

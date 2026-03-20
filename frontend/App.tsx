@@ -1,9 +1,48 @@
 import "./global.css";
+import { useEffect } from "react";
 import { Platform, View, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { AuthProvider, useAuth } from "./src/context/AuthContext";
+import type { AuthUser } from "./src/context/AuthContext";
 import RootStack from "./src/navigation/RootStack";
+
+// OAuth 콜백: URL에 ?auth_token=xxx&auth_user=... 가 있으면 자동 로그인
+const OAuthCallbackHandler = () => {
+  const { login: saveAuth, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (Platform.OS !== "web" || isAuthenticated) return;
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("auth_token");
+    const userJson = params.get("auth_user");
+    const oauthError = params.get("oauth_error");
+
+    if (oauthError) {
+      console.warn("OAuth 오류:", oauthError);
+      // URL 파라미터 제거
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+
+    if (token && userJson) {
+      try {
+        const user = JSON.parse(decodeURIComponent(userJson)) as AuthUser;
+        saveAuth(token, user);
+      } catch (e) {
+        console.warn("OAuth 유저 파싱 오류:", e);
+      } finally {
+        // URL 파라미터 제거 (보안 + UX)
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, []);
+
+  return null;
+};
 
 // 웹에서 모바일 앱처럼 보이도록 중앙 고정 컨테이너
 const WebShell = ({ children }: { children: React.ReactNode }) => {
@@ -17,12 +56,15 @@ const WebShell = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <SafeAreaProvider>
-    <WebShell>
-      <NavigationContainer>
-        <StatusBar style="dark" />
-        <RootStack />
-      </NavigationContainer>
-    </WebShell>
+    <AuthProvider>
+      <WebShell>
+        <NavigationContainer>
+          <StatusBar style="dark" />
+          <OAuthCallbackHandler />
+          <RootStack />
+        </NavigationContainer>
+      </WebShell>
+    </AuthProvider>
   </SafeAreaProvider>
 );
 
