@@ -27,7 +27,7 @@ const InfoCard = ({ label, value }: { label: string; value: string }) => (
 );
 
 const BreedResultScreen = ({ navigation, route }: Props) => {
-  const { result, imageUri } = route.params;
+  const { result, imageUri, gradcamUri } = route.params;
   const [breedDetail, setBreedDetail] = useState<BreedDetailResponse | null>(
     null,
   );
@@ -68,10 +68,10 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
           품종 분석 결과
         </Text>
 
-        {/* 상단 썸네일 */}
-        {imageUri && (
+        {/* 상단 썸네일 — GradCAM 우선, 없으면 원본 */}
+        {(gradcamUri || imageUri) && (
           <Image
-            source={{ uri: imageUri }}
+            source={{ uri: gradcamUri ?? imageUri }}
             className="w-full rounded-2xl"
             style={{ aspectRatio: 4 / 3 }}
             resizeMode="contain"

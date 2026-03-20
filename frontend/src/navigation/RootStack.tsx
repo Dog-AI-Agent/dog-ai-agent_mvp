@@ -8,7 +8,7 @@ import type { BreedRecognitionResponse } from "../types";
 
 export type RootStackParamList = {
   Upload: undefined;
-  BreedResult: { result: BreedRecognitionResponse; imageUri: string };
+  BreedResult: { result: BreedRecognitionResponse; imageUri: string; gradcamUri?: string };
   Recommendation: {
     breedId: string;
     breedNameKo: string;
