@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## v2.3.0 — 2026-03-20
+
+### 프론트엔드 UX 개선
+- **`BreedResultScreen`**: 유전병 위험 높음/중간/낮음 섹션별 접기/펼치기 (높음 기본 펼침)
+- **`BreedResultScreen`**: 맞춤 추천 보기 + 다른 강아지 분석하기 하단 sticky 고정
+- **`RecommendationScreen`**: 유전병별 영양소 카드 접기/펼치기 (첫 번째만 기본 펼침)
+- **`RecommendationScreen`**: 뒤로가기 + 다른 강아지 분석하기 하단 sticky 고정
+- **`RecipeDetailScreen`**: 재료 중복 제거 (이름 기준 dedupe)
+- **`RecipeDetailScreen`**: 재료/조리 순서 섹션 접기/펼치기
+- **`RecipeDetailScreen`**: 뒤로가기 + 다른 강아지 분석하기 하단 sticky 고정
+- **`FloatingChatButton`**: 드래그 가능한 플로팅 AI 챗봇 버튼 추가 (품종 분석 후 모든 페이지)
+- **`FloatingChatButton`**: 웹 mouse event / 네이티브 PanResponder 분리 구현
+- **`FloatingChatButton`**: 뒤로가기 버튼 클릭 시 챗봇 오작동 버그 수정 (`dragging.current` 조건 추가)
+- **`BreedResultScreen`**: top3 품종명 한글 표시 (`breed_ko` 필드 연동)
+- **`context/BreedContext`**: 전역 breed 상태 관리 Context 추가
+- **`App.tsx`**: BreedProvider 추가, FloatingChatButton 전역 배치
+
+---
+
 ## v2.2.0 — 2026-03-20
 
 ### 배포 & 인프라
