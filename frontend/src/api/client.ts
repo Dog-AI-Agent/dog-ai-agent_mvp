@@ -66,6 +66,9 @@ const request = async <T>(
       throw err;
     }
 
+    // 204 No Content — 빈 객체 반환
+    if (res.status === 204) return {} as T;
+
     return (await res.json()) as T;
   } finally {
     clearTimeout(timer);
@@ -82,3 +85,6 @@ export const post = <T>(path: string, body: BodyInit, headers?: Record<string, s
 
 export const put = <T>(path: string, body: BodyInit, headers?: Record<string, string>): Promise<T> =>
   request<T>(path, { method: "PUT", body, headers });
+
+export const del = <T>(path: string, body?: BodyInit, headers?: Record<string, string>): Promise<T> =>
+  request<T>(path, { method: "DELETE", body, headers });

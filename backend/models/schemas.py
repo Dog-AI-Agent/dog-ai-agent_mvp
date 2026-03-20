@@ -70,6 +70,23 @@ class DogResponse(BaseModel):
     created_at: str
 
 
+# ── Analysis History ──
+
+class AnalysisHistoryResponse(BaseModel):
+    history_id: str
+    breed_id: Optional[str] = None
+    breed_name_ko: str
+    breed_name_en: Optional[str] = None
+    confidence: Optional[float] = None
+    is_mixed_breed: bool = False
+    image_url: Optional[str] = None
+    created_at: str
+
+
+class AnalysisDeleteRequest(BaseModel):
+    history_ids: list[str]
+
+
 # ── Breed ──
 
 class DiseaseInBreed(BaseModel):
@@ -175,6 +192,8 @@ class FoodCard(BaseModel):
     image_url: Optional[str] = None
     related_ingredients: list[str] = []
     recipe_ids: list[str] = []
+    difficulty: Optional[str] = None
+    target_diseases: list[str] = []
 
 
 class RecipeCard(BaseModel):
