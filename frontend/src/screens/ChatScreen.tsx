@@ -96,26 +96,25 @@ const ChatScreen = ({ navigation, route }: Props) => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
-        className="flex-1"
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={0}
       >
         {/* 헤더 */}
-        <View className="flex-row items-center border-b border-gray-100 px-4 py-3">
-          <Pressable onPress={() => navigation.goBack()} className="mr-3 p-1">
-            <Text className="text-2xl text-gray-400">←</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#f3f4f6", paddingHorizontal: 16, paddingVertical: 12 }}>
+          <Pressable onPress={() => navigation.goBack()} style={{ marginRight: 12, padding: 4 }}>
+            <Text style={{ fontSize: 22, color: "#9ca3af" }}>←</Text>
           </Pressable>
-          <View className="flex-1">
-            <Text className="text-base font-bold text-gray-800">
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, fontWeight: "700", color: "#1f2937" }}>
               {breedNameKo} AI 상담
             </Text>
-            <Text className="text-xs text-muted">
+            <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 1 }}>
               이 품종에 대해 궁금한 점을 물어보세요
             </Text>
           </View>
-          <UserHeader />
         </View>
 
         {/* 메시지 목록 */}
@@ -129,8 +128,8 @@ const ChatScreen = ({ navigation, route }: Props) => {
             flatListRef.current?.scrollToEnd({ animated: true })
           }
           ListEmptyComponent={
-            <View className="flex-1 items-center justify-center">
-              <Text className="text-sm text-muted">
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60 }}>
+              <Text style={{ fontSize: 14, color: "#9ca3af" }}>
                 {breedNameKo}에 대해 궁금한 점을 물어보세요!
               </Text>
             </View>
@@ -139,16 +138,16 @@ const ChatScreen = ({ navigation, route }: Props) => {
 
         {/* 타이핑 인디케이터 */}
         {sending && (
-          <View className="flex-row items-center gap-2 px-5 pb-1">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, paddingBottom: 4 }}>
             <ActivityIndicator size="small" color="#4361ee" />
-            <Text className="text-xs text-muted">답변 생성 중...</Text>
+            <Text style={{ fontSize: 12, color: "#9ca3af" }}>답변 생성 중...</Text>
           </View>
         )}
 
         {/* 입력 영역 */}
-        <View className="flex-row items-end gap-2 border-t border-gray-100 px-4 py-3">
+        <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, borderTopWidth: 1, borderTopColor: "#f3f4f6", paddingHorizontal: 16, paddingVertical: 12 }}>
           <TextInput
-            className="flex-1 rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-800"
+            style={{ flex: 1, borderRadius: 20, backgroundColor: "#f3f4f6", paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, color: "#1f2937", maxHeight: 100 }}
             placeholder="메시지를 입력하세요..."
             placeholderTextColor="#9ca3af"
             value={input}
@@ -159,17 +158,11 @@ const ChatScreen = ({ navigation, route }: Props) => {
             editable={!sending}
           />
           <Pressable
-            className={`items-center justify-center rounded-full px-4 py-3 ${
-              input.trim() && !sending ? "bg-primary" : "bg-gray-200"
-            }`}
+            style={{ alignItems: "center", justifyContent: "center", borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: input.trim() && !sending ? "#4361ee" : "#e5e7eb" }}
             onPress={handleSend}
             disabled={!input.trim() || sending}
           >
-            <Text
-              className={`text-sm font-bold ${
-                input.trim() && !sending ? "text-white" : "text-gray-400"
-              }`}
-            >
+            <Text style={{ fontSize: 14, fontWeight: "700", color: input.trim() && !sending ? "#fff" : "#9ca3af" }}>
               전송
             </Text>
           </Pressable>
