@@ -1,7 +1,8 @@
 {
-  "buildCommand": "cd frontend && npx expo export --platform web",
+  "buildCommand": "cd frontend && npm install && npx expo export --platform web",
   "outputDirectory": "frontend/dist",
   "framework": null,
+  "installCommand": "echo 'skip root install'",
   "rewrites": [
     {
       "source": "/api/proxy/:path*",
