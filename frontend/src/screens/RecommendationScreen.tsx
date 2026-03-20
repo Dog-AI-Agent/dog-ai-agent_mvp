@@ -24,7 +24,7 @@ if (
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
-import { getRecommendations } from "../api/recommendations";
+import { getRecommendations, getRecommendationSummary } from "../api/recommendations";
 import { useBreed } from "../context/BreedContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import EmptyState from "../components/EmptyState";
@@ -42,52 +42,56 @@ import type { RecommendationResponse, NutrientItem } from "../types";
 type Props = NativeStackScreenProps<RootStackParamList, "Recommendation">;
 type TabKey = "nutrients" | "foods";
 
-// ── AI 추천 이유 접기/펼치기 ──
-const CollapsibleSummary = ({ summary }: { summary: string }) => {
+// ── AI 추천 이유 (lazy 로딩 - 펼칠 때만 fetch) ──
+const CollapsibleSummary = ({ breedId }: { breedId: string }) => {
   const [expanded, setExpanded] = useState(false);
-  const reasonText = extractReasonOnly(summary);
-  const plainText = reasonText
-    .replace(/^#{1,4}\s*/gm, "")
-    .replace(/\*\*/g, "")
-    .replace(/^[-•*]\s*/gm, "")
-    .trim();
+  const [summary, setSummary] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [fetched, setFetched] = useState(false);
+
+  const handleToggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    const next = !expanded;
+    setExpanded(next);
+    if (next && !fetched) {
+      setFetched(true);
+      setSummaryLoading(true);
+      getRecommendationSummary(breedId)
+        .then((res) => setSummary(res.summary))
+        .catch(() => setSummary("AI 요약을 불러오지 못했습니다."))
+        .finally(() => setSummaryLoading(false));
+    }
+  };
+
+  const plainText = summary
+    ? extractReasonOnly(summary)
+        .replace(/^#{1,4}\s*/gm, "")
+        .replace(/\*\*/g, "")
+        .replace(/^[-•*]\s*/gm, "")
+        .trim()
+    : "";
 
   return (
     <Pressable
-      onPress={() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setExpanded((v) => !v);
-      }}
-      style={{
-        backgroundColor: "#eef1ff",
-        borderRadius: 16,
-        padding: 16,
-        gap: 8,
-      }}
+      onPress={handleToggle}
+      style={{ backgroundColor: "#eef1ff", borderRadius: 16, padding: 16, gap: 8 }}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Text style={{ fontSize: 15 }}>💡</Text>
-          <Text style={{ fontSize: 13, fontWeight: "700", color: "#4361ee" }}>
-            AI 추천 이유
-          </Text>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: "#4361ee" }}>AI 추천 이유</Text>
         </View>
-        <Text style={{ fontSize: 12, color: "#6b7280" }}>
-          {expanded ? "접기 ▲" : "더 보기 ▼"}
-        </Text>
+        <Text style={{ fontSize: 12, color: "#6b7280" }}>{expanded ? "접기 ▲" : "더 보기 ▼"}</Text>
       </View>
-      <Text
-        numberOfLines={expanded ? undefined : 2}
-        style={{ fontSize: 13, color: "#374151", lineHeight: 20 }}
-      >
-        {plainText}
-      </Text>
+      {!expanded && (
+        <Text style={{ fontSize: 12, color: "#9ca3af", fontStyle: "italic" }}>누르면 AI 요약을 불러옵니다</Text>
+      )}
+      {expanded && summaryLoading && (
+        <Text style={{ fontSize: 13, color: "#9ca3af", textAlign: "center", paddingVertical: 8 }}>🤖 AI 분석 중...</Text>
+      )}
+      {expanded && !summaryLoading && plainText ? (
+        <Text style={{ fontSize: 13, color: "#374151", lineHeight: 20 }}>{plainText}</Text>
+      ) : null}
     </Pressable>
   );
 };
@@ -384,7 +388,7 @@ const RecommendationScreen = ({ navigation, route }: Props) => {
           {data.breed_name_ko} 맞춤 추천
         </Text>
 
-        {data.summary ? <CollapsibleSummary summary={data.summary} /> : null}
+        <CollapsibleSummary breedId={breedId} />
 
         {/* 탭 바 */}
         <View

@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v2.4.0 — 2026-03-20
+
+### 성능 개선 - Lazy Loading
+- **`recommendations.py`**: API 분리 — `GET /recommendations` (DB만 즉시 반환) / `GET /recommendations/summary` (LLM summary 별도)
+- **`RecommendationScreen`**: `CollapsibleSummary` lazy 로딩 — "AI 추천 이유" 버튼 펼칠 때만 LLM 호출, 초기 로딩 속도 대폭 개선
+- **`recommendations.ts`**: `getRecommendationSummary()` API 함수 추가
+
+---
+
 ## v2.3.0 — 2026-03-20
 
 ### 프론트엔드 UX 개선
