@@ -1,80 +1,66 @@
-import sys
-import os
+"""
+Dog Detector — MobileNetV2 imagenet, async non-blocking.
+Pair2 리팩터링: run_in_executor + module-level model load
+"""
+from __future__ import annotations
+
+import asyncio
+from typing import TYPE_CHECKING
+
 import numpy as np
-from PIL import Image
 import tensorflow as tf
+from tf_keras.applications.mobilenet_v2 import preprocess_input
 
-# breed 모듈 경로 추가
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'breed'))
+if TYPE_CHECKING:
+    from image_pipeline import PreprocessedImage
+    from prediction_cache import DetectionResult
 
-# ImageNet 기준 개 품종 클래스 인덱스 범위
 DOG_CLASS_START = 151
 DOG_CLASS_END = 268
 
-model = None
+# Module-level load — 한 번만 로드, 요청마다 import 안 함
+_model = None
 
 
 def load_model():
-    global model
-    if model is None:
-        model = tf.keras.applications.MobileNetV2(weights="imagenet")
-    return model
+    global _model
+    if _model is None:
+        _model = tf.keras.applications.MobileNetV2(weights="imagenet")
+    return _model
 
 
-def is_dog(image_path: str) -> bool:
-    """
-    이미지 경로를 받아 강아지 여부를 반환합니다.
-
-    Args:
-        image_path: 이미지 파일 경로
-
-    Returns:
-        True if dog, False otherwise
-    """
-    img = Image.open(image_path).convert("RGB").resize((224, 224))
-    x = tf.keras.applications.mobilenet_v2.preprocess_input(
-        np.expand_dims(np.array(img), axis=0)
-    )
-
-    preds = load_model().predict(x, verbose=0)
-    top_class = np.argmax(preds[0])
-
-    return DOG_CLASS_START <= top_class <= DOG_CLASS_END
+def _predict_sync(batch: np.ndarray) -> np.ndarray:
+    return load_model().predict(batch, verbose=0)
 
 
+async def predict_dog(img: "PreprocessedImage") -> "DetectionResult":
+    """MobileNetV2 dog detection — run_in_executor로 비동기 실행."""
+    from prediction_cache import DetectionResult
+
+    loop = asyncio.get_running_loop()
+    batch = preprocess_input(img.preprocessed_array.copy())
+    preds = await loop.run_in_executor(None, _predict_sync, batch)
+
+    top_idx = int(np.argmax(preds[0]))
+    confidence = float(preds[0][top_idx])
+    is_dog = DOG_CLASS_START <= top_idx <= DOG_CLASS_END
+
+    return DetectionResult(is_dog=is_dog, confidence=confidence, top_class_index=top_idx)
+
+
+async def warmup_detector() -> None:
+    """Dummy inference로 TF 그래프 컴파일 (첫 요청 지연 제거)."""
+    loop = asyncio.get_running_loop()
+    dummy = preprocess_input(np.zeros((1, 224, 224, 3), dtype=np.float32))
+    await loop.run_in_executor(None, _predict_sync, dummy)
+
+
+# 기존 호환: is_dog_from_bytes (동기 버전)
 def is_dog_from_bytes(image_bytes: bytes) -> bool:
-    """
-    이미지 바이트를 받아 강아지 여부를 반환합니다.
-
-    Args:
-        image_bytes: 이미지 바이트 데이터
-
-    Returns:
-        True if dog, False otherwise
-    """
     import io
-
+    from PIL import Image
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB").resize((224, 224))
-    x = tf.keras.applications.mobilenet_v2.preprocess_input(
-        np.expand_dims(np.array(img), axis=0)
-    )
-
-    preds = load_model().predict(x, verbose=0)
-    top_class = np.argmax(preds[0])
-
+    x = preprocess_input(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
+    preds = _predict_sync(x)
+    top_class = int(np.argmax(preds[0]))
     return DOG_CLASS_START <= top_class <= DOG_CLASS_END
-
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python dog_detector.py <image_path>")
-        sys.exit(1)
-
-    path = sys.argv[1]
-    result = is_dog(path)
-    print("강아지 O" if result else "강아지 X")
-
-    if result:
-        from savetojson import save_to_json
-        saved_path = save_to_json(path)
-        print(f"JSON 저장 완료: {saved_path}")
