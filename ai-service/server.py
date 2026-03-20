@@ -3,6 +3,7 @@ AI Server — 강아지 감지 + 품종 분류 API
 Port 8001
 """
 
+import asyncio
 import io
 import time
 import sys
@@ -35,6 +36,12 @@ async def lifespan(app: FastAPI):
         print("✅ 강아지 감지 모델 로딩 완료")
     except Exception as e:
         print(f"⚠️  강아지 감지 모델 로딩 실패: {e}")
+    # GradCAM 모듈 미리 import (요청 시 지연 방지)
+    try:
+        from gradcam import generate_gradcam_image  # noqa: F401
+        print("✅ GradCAM 모듈 로딩 완료")
+    except Exception as e:
+        print(f"⚠️  GradCAM 모듈 로딩 실패: {e}")
     yield
 
 
@@ -108,17 +115,14 @@ async def detect_and_classify(file: UploadFile = File(...)):
 @app.post("/gradcam")
 async def gradcam(file: UploadFile = File(...)):
     try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'breed'))
         from gradcam import generate_gradcam_image
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=503, detail=f"GradCAM 모듈 로드 실패: {e}")
+        raise HTTPException(status_code=503, detail=f"GradCAM 모듈 없음: {e}")
 
     contents = await file.read()
     try:
         pil_image = Image.open(io.BytesIO(contents))
-        b64 = generate_gradcam_image(pil_image)
+        b64 = await asyncio.get_event_loop().run_in_executor(None, generate_gradcam_image, pil_image)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"GradCAM 생성 실패: {str(e)}")
 
