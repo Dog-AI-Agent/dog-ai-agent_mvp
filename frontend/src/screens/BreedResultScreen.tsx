@@ -119,7 +119,7 @@ const DiseaseSection = ({
 };
 
 const BreedResultScreen = ({ navigation, route }: Props) => {
-  const { result, imageUri } = route.params;
+  const { result, imageUri, gradcamUri } = route.params;
   const [breedDetail, setBreedDetail] = useState<BreedDetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const { setBreed } = useBreed();

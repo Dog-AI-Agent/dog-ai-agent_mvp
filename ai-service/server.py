@@ -108,8 +108,11 @@ async def detect_and_classify(file: UploadFile = File(...)):
 @app.post("/gradcam")
 async def gradcam(file: UploadFile = File(...)):
     try:
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'breed'))
         from gradcam import generate_gradcam_image
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=503, detail=f"GradCAM 모듈 로드 실패: {e}")
 
     contents = await file.read()

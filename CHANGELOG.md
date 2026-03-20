@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v2.6.0 — 2026-03-20
+
+### 버그 수정
+- **`BreedResultScreen`**: `gradcamUri` params 누락 수정 (화면 크래시 해결)
+- **`ai-service/server.py`**: GradCAM import 에러 traceback 출력 추가
+- **`ai-service/server.py`**: `breed` 경로 sys.path 명시적 추가
+- **`ai-service/.venv`**: 경로 깨진 가상환경 재생성 (Python 3.12 기준)
+- **`ai-service`**: `matplotlib` 패키지 누락 설치
+
+---
+
 ## v2.5.0 — 2026-03-20
 
 ### 프론트엔드 UI 개선
