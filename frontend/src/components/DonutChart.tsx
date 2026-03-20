@@ -15,7 +15,7 @@ const DonutChart = ({ predictions }: DonutChartProps) => {
 
   const slices = [
     ...top3.map((p, i) => ({
-      label: p.breed,
+      label: p.breed_ko || p.breed,
       value: p.probability,
       pct: (p.probability * 100).toFixed(1),
       color: COLORS[i],
