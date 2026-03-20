@@ -170,19 +170,24 @@ async def create_my_dog(body: DogCreateRequest, user_id: str = Depends(get_curre
     return _to_dog_response(dog, breed_name_ko)
 
 
-# ── 내 개 정보 수정 ──
+# ── 내 개 정보 수정 (upsert: 없으면 자동 생성) ──
 @router.put("/me/dog", response_model=DogResponse)
 async def update_my_dog(body: DogUpdateRequest, user_id: str = Depends(get_current_user_id)):
     db = get_supabase()
-    existing = db.table("dogs").select("id").eq("user_id", user_id).execute()
-    if not existing.data:
-        raise HTTPException(status_code=404, detail="등록된 반려견이 없습니다.")
+    existing = db.table("dogs").select("*").eq("user_id", user_id).execute()
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
-    if not updates:
-        raise HTTPException(status_code=400, detail="수정할 내용이 없습니다.")
-    result = db.table("dogs").update(updates).eq("user_id", user_id).execute()
+
+    if not existing.data:
+        # 없으면 새로 생성
+        new_dog = {"user_id": user_id, **updates}
+        result = db.table("dogs").insert(new_dog).execute()
+    else:
+        if not updates:
+            raise HTTPException(status_code=400, detail="수정할 내용이 없습니다.")
+        result = db.table("dogs").update(updates).eq("user_id", user_id).execute()
+
     if not result.data:
-        raise HTTPException(status_code=500, detail="반려견 정보 수정 중 오류가 발생했습니다.")
+        raise HTTPException(status_code=500, detail="반려견 정보 저장 중 오류가 발생했습니다.")
     dog = result.data[0]
     breed_name_ko = None
     if dog.get("breed_id"):
