@@ -945,11 +945,11 @@ const RecommendationScreen = ({ navigation, route }: Props) => {
         }}
       >
         <Pressable
-          style={{
-            backgroundColor: "#f3f4f6",
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? "#e5e7eb" : "#f3f4f6",
             borderRadius: 14,
             paddingVertical: 13,
-          }}
+          })}
           onPress={() => navigation.goBack()}
         >
           <Text
@@ -964,11 +964,11 @@ const RecommendationScreen = ({ navigation, route }: Props) => {
           </Text>
         </Pressable>
         <Pressable
-          style={{
-            backgroundColor: "#f3f4f6",
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? "#3451d1" : "#4361EE",
             borderRadius: 14,
             paddingVertical: 13,
-          }}
+          })}
           onPress={() =>
             navigation.reset({ index: 0, routes: [{ name: "Upload" }] })
           }
@@ -978,7 +978,7 @@ const RecommendationScreen = ({ navigation, route }: Props) => {
               textAlign: "center",
               fontSize: 13,
               fontWeight: "600",
-              color: "#6b7280",
+              color: "#ffffff",
             }}
           >
             다른 강아지 분석하기

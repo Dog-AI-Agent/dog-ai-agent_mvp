@@ -17,9 +17,9 @@ const UserHeader = () => {
       paddingVertical: 10,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "flex-end",
-      gap: 8,
+      justifyContent: "space-between",
     }}>
+      {/* 왼쪽 끝: 마이페이지 */}
       <Pressable
         onPress={() => navigation.navigate("MyPage")}
         style={({ pressed }) => ({
@@ -27,31 +27,34 @@ const UserHeader = () => {
           paddingVertical: 4,
           borderRadius: 8,
           borderWidth: 1,
-          borderColor: "#d1d5db",
-          backgroundColor: pressed ? "#f3f4f6" : "#ffffff",
+          borderColor: "#4361EE",
+          backgroundColor: pressed ? "#eef0fd" : "#ffffff",
         })}
       >
-        <Text style={{ fontSize: 12, color: "#6b7280" }}>마이페이지</Text>
+        <Text style={{ fontSize: 12, color: "#4361EE", fontWeight: "600" }}>마이페이지</Text>
       </Pressable>
 
-      <Text style={{ fontSize: 13, color: "#6b7280" }}>
-        <Text style={{ fontWeight: "700", color: "#1f2937" }}>{user.nickname}</Text>
-        {" "}님
-      </Text>
+      {/* 오른쪽: 닉네임 + 로그아웃 */}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+        <Text style={{ fontSize: 13, color: "#6b7280" }}>
+          <Text style={{ fontWeight: "700", color: "#1f2937" }}>{user.nickname}</Text>
+          {" "}님
+        </Text>
 
-      <Pressable
-        onPress={logout}
-        style={({ pressed }) => ({
-          paddingHorizontal: 10,
-          paddingVertical: 4,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: "#d1d5db",
-          backgroundColor: pressed ? "#f3f4f6" : "#ffffff",
-        })}
-      >
-        <Text style={{ fontSize: 12, color: "#6b7280" }}>로그아웃</Text>
-      </Pressable>
+        <Pressable
+          onPress={logout}
+          style={({ pressed }) => ({
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: "#d1d5db",
+            backgroundColor: pressed ? "#f3f4f6" : "#ffffff",
+          })}
+        >
+          <Text style={{ fontSize: 12, color: "#6b7280" }}>로그아웃</Text>
+        </Pressable>
+      </View>
     </View>
   );
 };

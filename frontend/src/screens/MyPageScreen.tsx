@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -11,13 +11,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
 import { useAuth } from "../context/AuthContext";
-import { getMe, updateMe, getMyDog, createMyDog, updateMyDog } from "../api/users";
-import { listBreeds } from "../api/breeds";
+import { useBreed } from "../context/BreedContext";
+import { updateMe, getMyDog, createMyDog, updateMyDog } from "../api/users";
 import type { DogInfo } from "../api/users";
-import type { BreedListItem } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MyPage">;
 type Tab = "user" | "dog";
+
+const PRIMARY = "#4361EE";
+const PRIMARY_LIGHT = "#eef0fd";
+const PRIMARY_PRESSED = "#3451d1";
 
 // ── 입력 필드 공통 컴포넌트 ──
 const Field = ({
@@ -58,7 +61,7 @@ const Field = ({
   </View>
 );
 
-// ── 내 정보 탭 ──
+// ── My Profile 탭 ──
 const UserInfoTab = () => {
   const { user, updateUser } = useAuth();
   const [editing, setEditing] = useState(false);
@@ -129,7 +132,13 @@ const UserInfoTab = () => {
           <Pressable
             onPress={handleSave}
             disabled={loading}
-            style={{ flex: 2, backgroundColor: "#CC1A1A", borderRadius: 12, paddingVertical: 12, alignItems: "center" }}
+            style={({ pressed }) => ({
+              flex: 2,
+              backgroundColor: pressed ? PRIMARY_PRESSED : PRIMARY,
+              borderRadius: 12,
+              paddingVertical: 12,
+              alignItems: "center",
+            })}
           >
             {loading ? <ActivityIndicator color="#fff" size="small" /> : (
               <Text style={{ fontSize: 14, color: "#fff", fontWeight: "700" }}>저장</Text>
@@ -139,7 +148,12 @@ const UserInfoTab = () => {
       ) : (
         <Pressable
           onPress={() => { setEditing(true); setSuccess(""); }}
-          style={{ backgroundColor: "#CC1A1A", borderRadius: 12, paddingVertical: 12, alignItems: "center" }}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? PRIMARY_PRESSED : PRIMARY,
+            borderRadius: 12,
+            paddingVertical: 12,
+            alignItems: "center",
+          })}
         >
           <Text style={{ fontSize: 14, color: "#fff", fontWeight: "700" }}>수정</Text>
         </Pressable>
@@ -148,12 +162,10 @@ const UserInfoTab = () => {
   );
 };
 
-// ── 내 개 정보 탭 ──
+// ── Dog Profile 탭 ──
 const DogInfoTab = () => {
+  const { breedId, breedNameKo } = useBreed();
   const [dog, setDog] = useState<DogInfo | null>(null);
-  const [breeds, setBreeds] = useState<BreedListItem[]>([]);
-  const [breedSearch, setBreedSearch] = useState("");
-  const [showBreedList, setShowBreedList] = useState(false);
   const [editing, setEditing] = useState(false);
   const [isNew, setIsNew] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -172,24 +184,24 @@ const DogInfoTab = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const [dogData, breedsData] = await Promise.all([
-          getMyDog(),
-          listBreeds({ limit: 100 }),
-        ]);
-        setBreeds(breedsData.breeds);
+        const dogData = await getMyDog();
         if (dogData) {
           setDog(dogData);
           setForm({
             name: dogData.name,
             birthday: dogData.birthday ?? "",
-            breed_id: dogData.breed_id ?? "",
-            breed_name_ko: dogData.breed_name_ko ?? "",
+            breed_id: dogData.breed_id ?? breedId ?? "",
+            breed_name_ko: dogData.breed_name_ko ?? breedNameKo ?? "",
             favorite_ingredients: dogData.favorite_ingredients,
           });
-          setBreedSearch(dogData.breed_name_ko ?? "");
         } else {
           setIsNew(true);
           setEditing(true);
+          setForm((prev) => ({
+            ...prev,
+            breed_id: breedId ?? "",
+            breed_name_ko: breedNameKo ?? "",
+          }));
         }
       } catch {
         setError("정보를 불러오지 못했습니다.");
@@ -200,15 +212,11 @@ const DogInfoTab = () => {
     load();
   }, []);
 
-  const filteredBreeds = breeds.filter((b) =>
-    b.name_ko.includes(breedSearch) || b.name_en.toLowerCase().includes(breedSearch.toLowerCase())
-  );
-
-  const selectBreed = (breed: BreedListItem) => {
-    setForm((prev) => ({ ...prev, breed_id: breed.breed_id, breed_name_ko: breed.name_ko }));
-    setBreedSearch(breed.name_ko);
-    setShowBreedList(false);
-  };
+  useEffect(() => {
+    if (breedId && breedNameKo) {
+      setForm((prev) => ({ ...prev, breed_id: breedId, breed_name_ko: breedNameKo }));
+    }
+  }, [breedId, breedNameKo]);
 
   const addIngredient = () => {
     const val = ingredientInput.trim();
@@ -250,25 +258,26 @@ const DogInfoTab = () => {
       setForm({
         name: dog.name,
         birthday: dog.birthday ?? "",
-        breed_id: dog.breed_id ?? "",
-        breed_name_ko: dog.breed_name_ko ?? "",
+        breed_id: dog.breed_id ?? breedId ?? "",
+        breed_name_ko: dog.breed_name_ko ?? breedNameKo ?? "",
         favorite_ingredients: dog.favorite_ingredients,
       });
-      setBreedSearch(dog.breed_name_ko ?? "");
     }
     setEditing(false);
     setError("");
   };
 
-  if (loading) return <ActivityIndicator color="#CC1A1A" style={{ marginTop: 40 }} />;
+  if (loading) return <ActivityIndicator color={PRIMARY} style={{ marginTop: 40 }} />;
+
+  const displayBreed = form.breed_name_ko || breedNameKo || "";
 
   return (
     <View style={{ gap: 16 }}>
       {!isNew && !editing && (
-        <View style={{ backgroundColor: "#fff5f5", borderRadius: 12, padding: 16, gap: 10 }}>
+        <View style={{ backgroundColor: PRIMARY_LIGHT, borderRadius: 12, padding: 16, gap: 10 }}>
           <Row label="이름" value={form.name} />
           <Row label="생일" value={form.birthday || "—"} />
-          <Row label="품종" value={form.breed_name_ko || "—"} />
+          <Row label="품종" value={displayBreed || "—"} />
           <View>
             <Text style={{ fontSize: 12, color: "#6b7280", fontWeight: "600", marginBottom: 6 }}>좋아하는 재료</Text>
             {form.favorite_ingredients.length === 0 ? (
@@ -276,8 +285,8 @@ const DogInfoTab = () => {
             ) : (
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
                 {form.favorite_ingredients.map((i) => (
-                  <View key={i} style={{ backgroundColor: "#fee2e2", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
-                    <Text style={{ fontSize: 13, color: "#CC1A1A" }}>{i}</Text>
+                  <View key={i} style={{ backgroundColor: "#dbeafe", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
+                    <Text style={{ fontSize: 13, color: PRIMARY }}>{i}</Text>
                   </View>
                 ))}
               </View>
@@ -288,39 +297,47 @@ const DogInfoTab = () => {
 
       {editing && (
         <View style={{ gap: 16 }}>
-          <Field label="강아지 이름 *" value={form.name} onChangeText={(v) => setForm((p) => ({ ...p, name: v }))} placeholder="예: 초코" />
-          <Field label="생일" value={form.birthday} onChangeText={(v) => setForm((p) => ({ ...p, birthday: v }))} placeholder="YYYY-MM-DD" />
+          <Field
+            label="강아지 이름 *"
+            value={form.name}
+            onChangeText={(v) => setForm((p) => ({ ...p, name: v }))}
+            placeholder="예: 초코"
+          />
+          <Field
+            label="생일"
+            value={form.birthday}
+            onChangeText={(v) => setForm((p) => ({ ...p, birthday: v }))}
+            placeholder="YYYY-MM-DD"
+          />
 
-          {/* 품종 검색 */}
+          {/* 품종 — 이미지 분류 자동 입력 (읽기 전용) */}
           <View style={{ gap: 4 }}>
             <Text style={{ fontSize: 12, color: "#6b7280", fontWeight: "600" }}>품종</Text>
-            <TextInput
-              style={{ borderWidth: 1, borderColor: "#d1d5db", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: "#1f2937" }}
-              value={breedSearch}
-              onChangeText={(v) => { setBreedSearch(v); setShowBreedList(true); setForm((p) => ({ ...p, breed_id: "", breed_name_ko: "" })); }}
-              placeholder="품종 검색 (예: 골든리트리버)"
-              placeholderTextColor="#9ca3af"
-              onFocus={() => setShowBreedList(true)}
-            />
-            {showBreedList && breedSearch.length > 0 && (
-              <View style={{ borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 12, maxHeight: 160, overflow: "hidden" }}>
-                <ScrollView nestedScrollEnabled>
-                  {filteredBreeds.slice(0, 20).map((b) => (
-                    <Pressable
-                      key={b.breed_id}
-                      onPress={() => selectBreed(b)}
-                      style={{ paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#f3f4f6" }}
-                    >
-                      <Text style={{ fontSize: 14, color: "#1f2937" }}>{b.name_ko}</Text>
-                      <Text style={{ fontSize: 11, color: "#9ca3af" }}>{b.name_en}</Text>
-                    </Pressable>
-                  ))}
-                  {filteredBreeds.length === 0 && (
-                    <Text style={{ padding: 14, color: "#9ca3af", fontSize: 13 }}>검색 결과 없음</Text>
-                  )}
-                </ScrollView>
-              </View>
-            )}
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: "#f3f4f6",
+                borderRadius: 12,
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                backgroundColor: "#f9fafb",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ fontSize: 14, color: displayBreed ? "#1f2937" : "#9ca3af" }}>
+                {displayBreed || "품종 분류 후 자동 입력됩니다"}
+              </Text>
+              {displayBreed ? (
+                <View style={{ backgroundColor: "#dbeafe", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
+                  <Text style={{ fontSize: 11, color: PRIMARY, fontWeight: "600" }}>자동 입력</Text>
+                </View>
+              ) : null}
+            </View>
+            <Text style={{ fontSize: 11, color: "#9ca3af" }}>
+              홈 화면에서 강아지 사진을 분석하면 자동으로 입력됩니다.
+            </Text>
           </View>
 
           {/* 좋아하는 재료 */}
@@ -337,7 +354,12 @@ const DogInfoTab = () => {
               />
               <Pressable
                 onPress={addIngredient}
-                style={{ backgroundColor: "#CC1A1A", borderRadius: 12, paddingHorizontal: 16, justifyContent: "center" }}
+                style={({ pressed }) => ({
+                  backgroundColor: pressed ? PRIMARY_PRESSED : PRIMARY,
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  justifyContent: "center",
+                })}
               >
                 <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>추가</Text>
               </Pressable>
@@ -348,10 +370,10 @@ const DogInfoTab = () => {
                   <Pressable
                     key={item}
                     onPress={() => removeIngredient(item)}
-                    style={{ backgroundColor: "#fee2e2", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, flexDirection: "row", alignItems: "center", gap: 4 }}
+                    style={{ backgroundColor: "#dbeafe", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, flexDirection: "row", alignItems: "center", gap: 4 }}
                   >
-                    <Text style={{ fontSize: 13, color: "#CC1A1A" }}>{item}</Text>
-                    <Text style={{ fontSize: 12, color: "#CC1A1A" }}>✕</Text>
+                    <Text style={{ fontSize: 13, color: PRIMARY }}>{item}</Text>
+                    <Text style={{ fontSize: 12, color: PRIMARY }}>✕</Text>
                   </Pressable>
                 ))}
               </View>
@@ -376,7 +398,13 @@ const DogInfoTab = () => {
           <Pressable
             onPress={handleSave}
             disabled={saving}
-            style={{ flex: 2, backgroundColor: "#CC1A1A", borderRadius: 12, paddingVertical: 12, alignItems: "center" }}
+            style={({ pressed }) => ({
+              flex: 2,
+              backgroundColor: pressed ? PRIMARY_PRESSED : PRIMARY,
+              borderRadius: 12,
+              paddingVertical: 12,
+              alignItems: "center",
+            })}
           >
             {saving ? <ActivityIndicator color="#fff" size="small" /> : (
               <Text style={{ fontSize: 14, color: "#fff", fontWeight: "700" }}>저장</Text>
@@ -386,7 +414,12 @@ const DogInfoTab = () => {
       ) : (
         <Pressable
           onPress={() => { setEditing(true); setSuccess(""); }}
-          style={{ backgroundColor: "#CC1A1A", borderRadius: 12, paddingVertical: 12, alignItems: "center" }}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? PRIMARY_PRESSED : PRIMARY,
+            borderRadius: 12,
+            paddingVertical: 12,
+            alignItems: "center",
+          })}
         >
           <Text style={{ fontSize: 14, color: "#fff", fontWeight: "700" }}>수정</Text>
         </Pressable>
@@ -427,11 +460,11 @@ const MyPageScreen = ({ navigation }: Props) => {
               paddingVertical: 14,
               alignItems: "center",
               borderBottomWidth: 2,
-              borderBottomColor: tab === t ? "#CC1A1A" : "transparent",
+              borderBottomColor: tab === t ? PRIMARY : "transparent",
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: "600", color: tab === t ? "#CC1A1A" : "#9ca3af" }}>
-              {t === "user" ? "내 정보" : "내 개 정보"}
+            <Text style={{ fontSize: 15, fontWeight: "600", color: tab === t ? PRIMARY : "#9ca3af" }}>
+              {t === "user" ? "My Profile" : "Dog Profile"}
             </Text>
           </Pressable>
         ))}

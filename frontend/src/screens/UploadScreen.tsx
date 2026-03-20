@@ -155,7 +155,7 @@ const UploadScreen = ({ navigation }: Props) => {
         </View>
 
         {/* ── 업로드 영역 ── */}
-        <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
+        <View style={{ paddingHorizontal: 24, marginTop: 48 }}>
           {imageUri ? (
             // ── 이미지 선택 후 ──
             <View style={{ gap: 16 }}>
@@ -212,6 +212,7 @@ const UploadScreen = ({ navigation }: Props) => {
 
               <Pressable
                 style={{
+                  marginTop: 16,
                   backgroundColor: "#CC1A1A",
                   borderRadius: 16,
                   paddingVertical: 16,
