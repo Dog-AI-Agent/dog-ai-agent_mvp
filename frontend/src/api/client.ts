@@ -1,5 +1,5 @@
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-const IS_PROXIED = BASE_URL.includes("/proxy/");
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
 interface RequestOptions {
   method?: string;
@@ -9,7 +9,10 @@ interface RequestOptions {
   params?: Record<string, string | number | undefined>;
 }
 
-const buildUrl = (path: string, params?: Record<string, string | number | undefined>): string => {
+const buildUrl = (
+  path: string,
+  params?: Record<string, string | number | undefined>,
+): string => {
   const url = `${BASE_URL}${path}`;
   if (!params) return url;
 
@@ -21,8 +24,17 @@ const buildUrl = (path: string, params?: Record<string, string | number | undefi
   return qs ? `${url}?${qs}` : url;
 };
 
-const request = async <T>(path: string, options: RequestOptions = {}): Promise<T> => {
-  const { method = "GET", headers = {}, body, timeout = 30000, params } = options;
+const request = async <T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> => {
+  const {
+    method = "GET",
+    headers = {},
+    body,
+    timeout = 30000,
+    params,
+  } = options;
   const url = buildUrl(path, params);
 
   const controller = new AbortController();
@@ -31,14 +43,16 @@ const request = async <T>(path: string, options: RequestOptions = {}): Promise<T
   try {
     const res = await fetch(url, {
       method,
-      headers: { "ngrok-skip-browser-warning": "true", ...(IS_PROXIED ? {} : {}), ...headers },
+      headers: { ...headers },
       body,
       signal: controller.signal,
     });
 
     if (!res.ok) {
       const errorBody = await res.json().catch(() => ({}));
-      const err = new Error(errorBody.detail || `HTTP ${res.status}`) as Error & {
+      const err = new Error(
+        errorBody.detail || `HTTP ${res.status}`,
+      ) as Error & {
         status: number;
         detail?: string;
       };
@@ -53,8 +67,14 @@ const request = async <T>(path: string, options: RequestOptions = {}): Promise<T
   }
 };
 
-export const get = <T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> =>
-  request<T>(path, { params });
+export const get = <T>(
+  path: string,
+  params?: Record<string, string | number | undefined>,
+): Promise<T> => request<T>(path, { params });
 
-export const post = <T>(path: string, body: BodyInit, headers?: Record<string, string>, timeout?: number): Promise<T> =>
-  request<T>(path, { method: "POST", body, headers, timeout });
+export const post = <T>(
+  path: string,
+  body: BodyInit,
+  headers?: Record<string, string>,
+  timeout?: number,
+): Promise<T> => request<T>(path, { method: "POST", body, headers, timeout });
