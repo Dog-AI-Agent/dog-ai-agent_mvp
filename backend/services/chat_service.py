@@ -19,28 +19,29 @@ def _fetch_breed_context(breed_id: str) -> str:
     parts: list[str] = []
 
     # 1) 품종 기본 정보
+    # FIX: maybe_single() → limit(1).execute() — 결과 없을 때 204 APIError 방지
     breed = (
         sb.table("breeds")
-        .select("name_ko, name_en, size_category, avg_weight_kg, avg_life_span, description")
+        .select("name_ko, name_en, size_category, avg_weight_kg, avg_life_span_years, description")
         .eq("id", breed_id)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
     if breed.data:
-        b = breed.data
+        b = breed.data[0]  # FIX: limit(1) 결과는 리스트이므로 [0] 접근
         parts.append(
             f"[품종 정보]\n"
             f"이름: {b.get('name_ko', '')} ({b.get('name_en', '')})\n"
             f"크기: {b.get('size_category', '정보 없음')}\n"
             f"평균 체중: {b.get('avg_weight_kg', '정보 없음')}kg\n"
-            f"평균 수명: {b.get('avg_life_span', '정보 없음')}\n"
+            f"평균 수명: {b.get('avg_life_span_years', '정보 없음')}년\n"
             f"설명: {b.get('description', '정보 없음')}"
         )
 
     # 2) 유전병 정보
     diseases = (
         sb.table("breed_diseases")
-        .select("risk_level, severity, diseases(id, name_ko, name_en, description, symptoms, affected_area, prevention_tips)")
+        .select("risk_level, diseases(id, name_ko, name_en, description, severity, symptoms, affected_area, prevention_tips)")
         .eq("breed_id", breed_id)
         .execute()
     )
@@ -53,7 +54,7 @@ def _fetch_breed_context(breed_id: str) -> str:
             symptoms = ", ".join(d.get("symptoms", [])) if d.get("symptoms") else "정보 없음"
             disease_lines.append(
                 f"- {d.get('name_ko', d.get('name_en', ''))}\n"
-                f"  위험도: {bd.get('risk_level', '?')}, 심각도: {bd.get('severity', '?')}\n"
+                f"  위험도: {bd.get('risk_level', '?')}, 심각도: {d.get('severity', '?')}\n"
                 f"  설명: {d.get('description', '정보 없음')}\n"
                 f"  증상: {symptoms}\n"
                 f"  영향 부위: {d.get('affected_area', '정보 없음')}\n"
@@ -125,17 +126,18 @@ def _fetch_breed_context(breed_id: str) -> str:
 
 def _build_system_prompt(context: str, breed_name: str) -> str:
     return (
-        f"당신은 '{breed_name}' 품종 전문 반려견 영양 상담 수의사입니다.\n"
-        f"아래 데이터베이스 정보를 바탕으로 사용자의 질문에 답변하세요.\n\n"
+        f"당신은 반려견 전문 영양 상담 수의사입니다.\n"
+        f"현재 사용자는 '{breed_name}' 품종에 대해 상담 중이며, "
+        f"아래 데이터베이스 정보가 참고 자료로 제공됩니다.\n\n"
         f"규칙:\n"
         f"1. 반드시 한국어로 답변하세요.\n"
-        f"2. 아래 제공된 데이터에 기반하여 정확하게 답변하세요.\n"
-        f"3. '{breed_name}' 품종과 관련 없는 질문에는 정중하게 거절하고, "
-        f"'{breed_name}'에 대해 질문해달라고 안내하세요.\n"
-        f"4. 데이터에 없는 내용은 추측하지 말고 '해당 정보가 데이터에 없습니다'라고 안내하세요.\n"
-        f"5. 따뜻하고 전문적인 어조로 답변하세요.\n"
-        f"6. 답변은 간결하되 충분한 정보를 제공하세요.\n\n"
-        f"─── 데이터베이스 정보 ───\n{context}"
+        f"2. 아래 제공된 데이터베이스 정보가 있으면 우선적으로 활용하되, "
+        f"데이터에 없는 내용이라도 강아지 관련 질문이라면 일반적인 수의학 지식을 바탕으로 답변하세요.\n"
+        f"3. 강아지와 전혀 관련 없는 질문(날씨, 주식, 일반 상식 등)에는 "
+        f"정중하게 거절하고, 강아지 관련 질문을 해달라고 안내하세요.\n"
+        f"4. 따뜻하고 전문적인 어조로 답변하세요.\n"
+        f"5. 답변은 간결하되 충분한 정보를 제공하세요.\n\n"
+        f"─── 참고: {breed_name} 데이터베이스 정보 ───\n{context}"
     )
 
 
@@ -151,18 +153,24 @@ async def get_chat_response(
         return fallback
 
     # DB에서 품종 컨텍스트 조회
-    context = _fetch_breed_context(breed_id)
+    # FIX: DB 조회 실패 시에도 챗봇이 동작하도록 방어
+    try:
+        context = _fetch_breed_context(breed_id)
+    except Exception:
+        logger.exception("Failed to fetch breed context")
+        context = "해당 품종에 대한 데이터가 없습니다."
 
     # 품종명 추출
     sb = get_supabase()
+    # FIX: maybe_single() → limit(1).execute() — 결과 없을 때 204 APIError 방지
     breed_row = (
         sb.table("breeds")
         .select("name_ko")
         .eq("id", breed_id)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
-    breed_name = breed_row.data.get("name_ko", breed_id) if breed_row.data else breed_id
+    breed_name = breed_row.data[0].get("name_ko", breed_id) if breed_row.data else breed_id
 
     system_prompt = _build_system_prompt(context, breed_name)
 

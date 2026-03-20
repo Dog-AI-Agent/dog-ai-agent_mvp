@@ -2,7 +2,9 @@ import { Platform } from "react-native";
 import { post } from "./client";
 import type { BreedRecognitionResponse } from "../types";
 
-export const recognizeBreed = async (imageUri: string): Promise<BreedRecognitionResponse> => {
+export const recognizeBreed = async (
+  imageUri: string,
+): Promise<BreedRecognitionResponse> => {
   const formData = new FormData();
   const filename = imageUri.split("/").pop() || "photo.jpg";
   const match = /\.(\w+)$/.exec(filename);
@@ -22,5 +24,10 @@ export const recognizeBreed = async (imageUri: string): Promise<BreedRecognition
     } as unknown as Blob);
   }
 
-  return post<BreedRecognitionResponse>("/ai/breed-recognition", formData, undefined, 60000);
+  return post<BreedRecognitionResponse>(
+    "/ai/breed-recognition",
+    formData,
+    undefined,
+    60000,
+  );
 };

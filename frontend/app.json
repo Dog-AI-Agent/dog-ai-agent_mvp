@@ -23,13 +23,8 @@
       "adaptiveIcon": {
         "backgroundColor": "#4361ee"
       },
-      "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE"
-      ]
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
     },
-    "plugins": [
-      "expo-asset"
-    ]
+    "plugins": ["expo-asset"]
   }
 }

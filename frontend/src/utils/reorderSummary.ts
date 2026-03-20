@@ -7,7 +7,7 @@
 
 interface Section {
   heading: string; // "### 추천 이유" 등 헤더 라인 (없으면 빈 문자열)
-  key: string;     // 섹션 키워드 (소문자, 공백 제거)
+  key: string; // 섹션 키워드 (소문자, 공백 제거)
   lines: string[]; // 헤더 이후 본문 라인들
 }
 
@@ -48,7 +48,7 @@ export function splitSections(raw: string): Section[] {
 function joinSections(sections: Section[]): string {
   return sections
     .map((s) =>
-      s.heading ? [s.heading, ...s.lines].join("\n") : s.lines.join("\n")
+      s.heading ? [s.heading, ...s.lines].join("\n") : s.lines.join("\n"),
     )
     .join("\n");
 }
@@ -61,13 +61,20 @@ export function reorderSummary(raw: string): string {
   const sections = splitSections(raw);
 
   const recipeKeywords = ["만드는법", "조리법", "조리방법", "만들기", "재료"];
-  const reasonKeywords = ["추천이유", "이유", "효능", "왜추천", "한줄소개", "소개"];
+  const reasonKeywords = [
+    "추천이유",
+    "이유",
+    "효능",
+    "왜추천",
+    "한줄소개",
+    "소개",
+  ];
 
   const recipeIdx = sections.findIndex((s) =>
-    recipeKeywords.some((kw) => s.key.includes(kw))
+    recipeKeywords.some((kw) => s.key.includes(kw)),
   );
   const reasonIdx = sections.findIndex((s) =>
-    reasonKeywords.some((kw) => s.key.includes(kw))
+    reasonKeywords.some((kw) => s.key.includes(kw)),
   );
 
   // 둘 다 있고, 추천이유가 만드는법보다 앞에 있을 때만 스왑
@@ -75,7 +82,7 @@ export function reorderSummary(raw: string): string {
     const reordered = [...sections];
     const [recipe] = reordered.splice(recipeIdx, 1);
     const newReasonIdx = reordered.findIndex((s) =>
-      reasonKeywords.some((kw) => s.key.includes(kw))
+      reasonKeywords.some((kw) => s.key.includes(kw)),
     );
     reordered.splice(newReasonIdx, 0, recipe);
     return joinSections(reordered);
@@ -93,7 +100,7 @@ export function extractReasonOnly(raw: string): string {
   const reasonKeywords = ["추천이유", "이유", "효능", "왜추천", "__intro__"];
 
   const reasonSections = sections.filter((s) =>
-    reasonKeywords.some((kw) => s.key.includes(kw))
+    reasonKeywords.some((kw) => s.key.includes(kw)),
   );
 
   if (!reasonSections.length) return raw;

@@ -6,4 +6,7 @@ export const getRecommendations = (params: {
   disease_id?: string;
   type?: string;
 }): Promise<RecommendationResponse> =>
-  get<RecommendationResponse>("/recommendations", params as Record<string, string | number | undefined>);
+  get<RecommendationResponse>(
+    "/recommendations",
+    params as Record<string, string | number | undefined>,
+  );
