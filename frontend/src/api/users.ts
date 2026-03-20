@@ -1,5 +1,8 @@
 import { get, put, post } from "./client";
+import { getAuthToken } from "./tokenStore";
 import type { AuthUser } from "../context/AuthContext";
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
 export interface DogInfo {
   dog_id: string;
@@ -9,6 +12,17 @@ export interface DogInfo {
   breed_id?: string | null;
   breed_name_ko?: string | null;
   favorite_ingredients: string[];
+  created_at: string;
+}
+
+export interface AnalysisHistoryItem {
+  history_id: string;
+  breed_id?: string | null;
+  breed_name_ko: string;
+  breed_name_en?: string | null;
+  confidence?: number | null;
+  is_mixed_breed: boolean;
+  image_url?: string | null;
   created_at: string;
 }
 
@@ -40,3 +54,66 @@ export const createMyDog = (payload: DogPayload): Promise<DogInfo> =>
 
 export const updateMyDog = (payload: Partial<DogPayload>): Promise<DogInfo> =>
   put<DogInfo>("/users/me/dog", JSON.stringify(payload), { "Content-Type": "application/json" });
+
+// ── 분석 히스토리 저장 (multipart) ──
+export const saveAnalysis = async (data: {
+  breed_id?: string | null;
+  breed_name_ko: string;
+  breed_name_en?: string;
+  confidence?: number;
+  is_mixed_breed?: boolean;
+  imageUri?: string | null;
+}): Promise<AnalysisHistoryItem> => {
+  const token = getAuthToken();
+  if (!token) throw new Error("로그인이 필요합니다.");
+
+  const formData = new FormData();
+  formData.append("breed_name_ko", data.breed_name_ko);
+  if (data.breed_id) formData.append("breed_id", data.breed_id);
+  if (data.breed_name_en) formData.append("breed_name_en", data.breed_name_en);
+  if (data.confidence != null) formData.append("confidence", String(data.confidence));
+  formData.append("is_mixed_breed", String(data.is_mixed_breed ?? false));
+
+  if (data.imageUri) {
+    if (data.imageUri.startsWith("data:")) {
+      // 웹: base64 data URL → Blob 변환
+      const fetchRes = await fetch(data.imageUri);
+      const blob = await fetchRes.blob();
+      formData.append("image", blob, "dog.jpg");
+    } else {
+      // 네이티브: React Native FormData 형식
+      formData.append("image", {
+        uri: data.imageUri,
+        type: "image/jpeg",
+        name: "dog.jpg",
+      } as any);
+    }
+  }
+
+  const res = await fetch(`${BASE_URL}/users/me/analyses`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true",
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+};
+
+// ── 분석 히스토리 조회 ──
+export const getAnalyses = (): Promise<AnalysisHistoryItem[]> =>
+  get<AnalysisHistoryItem[]>("/users/me/analyses");
+
+// ── 분석 히스토리 선택 삭제 (POST 방식) ──
+export const deleteAnalyses = (historyIds: string[]): Promise<{ deleted: number }> =>
+  post<{ deleted: number }>(
+    "/users/me/analyses/delete",
+    JSON.stringify({ history_ids: historyIds }),
+    { "Content-Type": "application/json" },
+  );
