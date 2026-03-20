@@ -37,6 +37,8 @@ import {
   CATEGORY_META,
 } from "../utils/categorizeIngredients";
 import type { IngredientCategory } from "../utils/categorizeIngredients";
+import type { RecommendationResponse } from "../types";
+import UserHeader from "../components/UserHeader";
 import type { RecommendationResponse, NutrientItem } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Recommendation">;
@@ -366,8 +368,8 @@ const RecommendationScreen = ({ navigation, route }: Props) => {
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      {/* 스크롤 영역 */}
+    <SafeAreaView className="flex-1 bg-white">
+      <UserHeader />
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 20,

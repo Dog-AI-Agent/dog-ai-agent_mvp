@@ -6,3 +6,7 @@ httpx
 python-multipart
 Pillow
 openai
+passlib[bcrypt]
+bcrypt==3.2.2
+python-jose[cryptography]
+email-validator

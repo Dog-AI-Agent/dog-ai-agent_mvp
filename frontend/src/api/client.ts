@@ -1,5 +1,7 @@
-const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+import { getAuthToken } from "./tokenStore";
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+const IS_PROXIED = BASE_URL.includes("/proxy/");
 
 interface RequestOptions {
   method?: string;
@@ -37,13 +39,16 @@ const request = async <T>(
   } = options;
   const url = buildUrl(path, params);
 
+  const token = getAuthToken();
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
   try {
     const res = await fetch(url, {
       method,
-      headers: { ...headers },
+      headers: { "ngrok-skip-browser-warning": "true", ...authHeaders, ...headers },
       body,
       signal: controller.signal,
     });
@@ -72,9 +77,8 @@ export const get = <T>(
   params?: Record<string, string | number | undefined>,
 ): Promise<T> => request<T>(path, { params });
 
-export const post = <T>(
-  path: string,
-  body: BodyInit,
-  headers?: Record<string, string>,
-  timeout?: number,
-): Promise<T> => request<T>(path, { method: "POST", body, headers, timeout });
+export const post = <T>(path: string, body: BodyInit, headers?: Record<string, string>, timeout?: number): Promise<T> =>
+  request<T>(path, { method: "POST", body, headers, timeout });
+
+export const put = <T>(path: string, body: BodyInit, headers?: Record<string, string>): Promise<T> =>
+  request<T>(path, { method: "PUT", body, headers });
