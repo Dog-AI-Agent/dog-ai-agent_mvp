@@ -224,7 +224,7 @@ EXPO_PUBLIC_API_URL=
 | 김재현          | Project Leader, AI Service  |
 | 최동원          | Backend, Release            |
 | 이민혜          | Frontend, Backend           |
-| 송진우          | Frontend                    |
+| 송진우          | Frontend, Backend           |
 | 장승우          | AI Service, Data Analysis   |
 
 ---
