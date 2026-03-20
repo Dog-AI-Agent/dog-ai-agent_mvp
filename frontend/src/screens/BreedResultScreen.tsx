@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
 import { getBreed } from "../api/breeds";
-import { updateMyDog, saveAnalysis } from "../api/users";
+import { updateMyDog, saveAnalysis, createMyDog } from "../api/users";
 import LoadingSpinner from "../components/LoadingSpinner";
 import EmptyState from "../components/EmptyState";
 import DonutChart from "../components/DonutChart";
@@ -105,8 +105,10 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
 
     setBreed(result.breed_id, result.breed_name_ko);
 
-    // 강아지 프로필 품종 자동 저장
-    updateMyDog({ breed_id: result.breed_id }).catch(() => {});
+    // 강아지 프로필 품종 자동 저장 (없으면 생성)
+    updateMyDog({ breed_id: result.breed_id }).catch(() => {
+      createMyDog({ name: "내 강아지", breed_id: result.breed_id! }).catch(() => {});
+    });
 
     // 분석 히스토리 저장 (이미지 포함)
     saveAnalysis({

@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -186,26 +187,40 @@ const DogHistoryTab = () => {
     console.log("[DogHistory] 삭제 버튼 클릭, selectedIds:", selectedIds);
 
     if (selectedIds.length === 0) {
-      Alert.alert("알림", "삭제할 항목을 먼저 선택해주세요.");
+      if (Platform.OS === "web") {
+        window.alert("삭제할 항목을 먼저 선택해주세요.");
+      } else {
+        Alert.alert("알림", "삭제할 항목을 먼저 선택해주세요.");
+      }
       return;
     }
 
-    Alert.alert(
-      "삭제 확인",
-      `선택한 ${selectedIds.length}개의 기록을 삭제할까요?`,
-      [
-        { text: "취소", style: "cancel", onPress: () => console.log("[DogHistory] 삭제 취소") },
-        {
-          text: "삭제",
-          style: "destructive",
-          onPress: () => {
-            console.log("[DogHistory] 삭제 확인, IDs:", selectedIds);
-            runDelete([...selectedIds]);
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm(`선택한 ${selectedIds.length}개의 기록을 삭제할까요?`);
+      if (confirmed) {
+        console.log("[DogHistory] 삭제 확인, IDs:", selectedIds);
+        runDelete([...selectedIds]);
+      } else {
+        console.log("[DogHistory] 삭제 취소");
+      }
+    } else {
+      Alert.alert(
+        "삭제 확인",
+        `선택한 ${selectedIds.length}개의 기록을 삭제할까요?`,
+        [
+          { text: "취소", style: "cancel", onPress: () => console.log("[DogHistory] 삭제 취소") },
+          {
+            text: "삭제",
+            style: "destructive",
+            onPress: () => {
+              console.log("[DogHistory] 삭제 확인, IDs:", selectedIds);
+              runDelete([...selectedIds]);
+            },
           },
-        },
-      ],
-      { cancelable: true }
-    );
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   const runDelete = async (ids: string[]) => {

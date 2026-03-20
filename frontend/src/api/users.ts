@@ -75,11 +75,19 @@ export const saveAnalysis = async (data: {
   formData.append("is_mixed_breed", String(data.is_mixed_breed ?? false));
 
   if (data.imageUri) {
-    formData.append("image", {
-      uri: data.imageUri,
-      type: "image/jpeg",
-      name: "dog.jpg",
-    } as any);
+    if (data.imageUri.startsWith("data:")) {
+      // 웹: base64 data URL → Blob 변환
+      const fetchRes = await fetch(data.imageUri);
+      const blob = await fetchRes.blob();
+      formData.append("image", blob, "dog.jpg");
+    } else {
+      // 네이티브: React Native FormData 형식
+      formData.append("image", {
+        uri: data.imageUri,
+        type: "image/jpeg",
+        name: "dog.jpg",
+      } as any);
+    }
   }
 
   const res = await fetch(`${BASE_URL}/users/me/analyses`, {
