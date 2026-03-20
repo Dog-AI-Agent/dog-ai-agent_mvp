@@ -37,7 +37,6 @@ import {
   CATEGORY_META,
 } from "../utils/categorizeIngredients";
 import type { IngredientCategory } from "../utils/categorizeIngredients";
-import type { RecommendationResponse } from "../types";
 import UserHeader from "../components/UserHeader";
 import type { RecommendationResponse, NutrientItem } from "../types";
 

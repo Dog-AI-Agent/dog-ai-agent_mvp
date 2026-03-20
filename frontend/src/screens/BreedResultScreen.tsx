@@ -15,7 +15,6 @@ import EmptyState from "../components/EmptyState";
 import DonutChart from "../components/DonutChart";
 import RiskBadge from "../components/RiskBadge";
 import UserHeader from "../components/UserHeader";
-import type { BreedDetailResponse } from "../types";
 import { useBreed } from "../context/BreedContext";
 import type { BreedDetailResponse, DiseaseInBreed } from "../types";
 
@@ -121,7 +120,7 @@ const DiseaseSection = ({
 };
 
 const BreedResultScreen = ({ navigation, route }: Props) => {
-  const { result, imageUri } = route.params;
+  const { result, imageUri, gradcamUri } = route.params;
   const [breedDetail, setBreedDetail] = useState<BreedDetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const { setBreed } = useBreed();
@@ -155,8 +154,6 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <UserHeader />
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* 스크롤 영역 */}
       <ScrollView

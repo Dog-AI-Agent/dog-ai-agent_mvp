@@ -135,7 +135,7 @@ const UploadScreen = ({ navigation }: Props) => {
       >
         {/* ── 헤더: 닉네임 + 로고 ── */}
         <UserHeader />
-        <View style={{ alignItems: "center" }}>
+        <View style={{ width: "100%" }}>
           <Image
             source={LOGO}
             style={{ width: "100%", height: 220 }}
