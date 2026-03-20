@@ -128,6 +128,27 @@ export interface RecipeStep {
   instruction: string;
 }
 
+// ── Chat ──
+
+export interface ChatSession {
+  session_id: string;
+  breed_id: string;
+  created_at: string;
+}
+
+export interface ChatMessage {
+  message_id: string;
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+}
+
+export interface ChatHistoryResponse {
+  session_id: string;
+  breed_id: string;
+  messages: ChatMessage[];
+}
+
 export interface RecipeDetailResponse {
   recipe_id: string;
   title: string;

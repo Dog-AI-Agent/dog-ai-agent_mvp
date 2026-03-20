@@ -166,20 +166,35 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
         {/* CTA 버튼들 */}
         <View className="gap-3 pb-4">
           {result.breed_id && (
-            <Pressable
-              className="rounded-2xl bg-primary px-6 py-4 active:opacity-80"
-              onPress={() =>
-                navigation.navigate("Recommendation", {
-                  breedId: result.breed_id!,
-                  breedNameKo: result.breed_name_ko,
-                  imageUri,
-                })
-              }
-            >
-              <Text className="text-center text-lg font-bold text-white">
-                맞춤 추천 보기
-              </Text>
-            </Pressable>
+            <>
+              <Pressable
+                className="rounded-2xl bg-primary px-6 py-4 active:opacity-80"
+                onPress={() =>
+                  navigation.navigate("Recommendation", {
+                    breedId: result.breed_id!,
+                    breedNameKo: result.breed_name_ko,
+                    imageUri,
+                  })
+                }
+              >
+                <Text className="text-center text-lg font-bold text-white">
+                  맞춤 추천 보기
+                </Text>
+              </Pressable>
+              <Pressable
+                className="rounded-2xl border-2 border-primary bg-white px-6 py-4 active:opacity-80"
+                onPress={() =>
+                  navigation.navigate("Chat", {
+                    breedId: result.breed_id!,
+                    breedNameKo: result.breed_name_ko,
+                  })
+                }
+              >
+                <Text className="text-center text-lg font-bold text-primary">
+                  AI에게 질문하기
+                </Text>
+              </Pressable>
+            </>
           )}
           <Pressable
             className="rounded-xl bg-gray-100 px-6 py-3 active:opacity-80"

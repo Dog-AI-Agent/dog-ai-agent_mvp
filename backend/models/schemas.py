@@ -157,3 +157,32 @@ class RecipeDetailResponse(BaseModel):
     steps: list[RecipeStep] = []
     target_diseases: list[str] = []
     summary: Optional[str] = None
+
+
+# ── Chat ──
+
+class ChatSessionCreate(BaseModel):
+    breed_id: str
+
+
+class ChatSessionResponse(BaseModel):
+    session_id: str
+    breed_id: str
+    created_at: str
+
+
+class ChatMessageRequest(BaseModel):
+    content: str
+
+
+class ChatMessageResponse(BaseModel):
+    message_id: str
+    role: str
+    content: str
+    created_at: str
+
+
+class ChatHistoryResponse(BaseModel):
+    session_id: str
+    breed_id: str
+    messages: list[ChatMessageResponse] = []
