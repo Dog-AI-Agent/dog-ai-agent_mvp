@@ -136,14 +136,11 @@ const LoginScreen = ({ navigation }: Props) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={{ alignItems: "center" }}>
+      <View style={{ width: "100%" }}>
         <Image
           source={require("../../assets/logo.png")}
-          style={{
-            width: screenWidth * 0.30,
-            height: screenWidth * 0.30 * (9 / 16),
-          }}
-          resizeMode="contain"
+          style={{ width: "100%", height: 220 }}
+          resizeMode="cover"
         />
       </View>
 
