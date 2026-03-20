@@ -75,7 +75,8 @@ const request = async <T>(
 export const get = <T>(
   path: string,
   params?: Record<string, string | number | undefined>,
-): Promise<T> => request<T>(path, { params });
+  timeout?: number,
+): Promise<T> => request<T>(path, { params, timeout });
 
 export const post = <T>(path: string, body: BodyInit, headers?: Record<string, string>, timeout?: number): Promise<T> =>
   request<T>(path, { method: "POST", body, headers, timeout });
