@@ -163,10 +163,11 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
           품종 분석 결과
         </Text>
 
-        {/* 썸네일 */}
-        {imageUri && (
+        {/* 상단 썸네일 — GradCAM 우선, 없으면 원본 */}
+        {(gradcamUri || imageUri) && (
           <Image
-            source={{ uri: imageUri }}
+            source={{ uri: gradcamUri ?? imageUri }}
+            className="w-full rounded-2xl"
             style={{ width: "100%", borderRadius: 16, aspectRatio: 4 / 3 }}
             resizeMode="contain"
           />
