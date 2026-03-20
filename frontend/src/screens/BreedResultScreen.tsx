@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
 import { getBreed } from "../api/breeds";
+import { updateMyDog } from "../api/users";
 import LoadingSpinner from "../components/LoadingSpinner";
 import EmptyState from "../components/EmptyState";
 import DonutChart from "../components/DonutChart";
@@ -127,8 +128,12 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
 
   useEffect(() => {
     if (!result.breed_id) return;
+
     // FloatingChatButton용 전역 breed 설정
     setBreed(result.breed_id, result.breed_name_ko);
+
+    // 강아지 프로필 품종 자동 저장 (로그인된 경우)
+    updateMyDog({ breed_id: result.breed_id }).catch(() => {});
 
     setLoading(true);
     getBreed(result.breed_id)
