@@ -1,14 +1,7 @@
 // 드래그 가능한 플로팅 AI 챗봇 버튼
-// 웹: mouse event / 네이티브: PanResponder
+// 웹(PC+모바일): mouse/touch event / 네이티브: PanResponder
 import { useRef, useState, useEffect } from "react";
-import {
-  Animated,
-  PanResponder,
-  Pressable,
-  Text,
-  View,
-  Platform,
-} from "react-native";
+import { Animated, PanResponder, Text, View, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
@@ -16,48 +9,79 @@ import { useBreed } from "../context/BreedContext";
 
 const BUTTON_SIZE = 56;
 
-// ── 웹 전용 드래그 버튼 ──
+// ── 웹 전용 (PC + 모바일 터치 모두 지원) ──
 const WebFloatingButton = ({ onPress }: { onPress: () => void }) => {
-  const [pos, setPos] = useState({ x: 380, y: 600 });
+  const [pos, setPos] = useState({ x: 16, y: 500 });
   const dragging = useRef(false);
-  const startMouse = useRef({ x: 0, y: 0 });
-  const startPos = useRef({ x: 380, y: 600 });
   const moved = useRef(false);
+  const startInput = useRef({ x: 0, y: 0 });
+  const startPos = useRef({ x: 16, y: 500 });
 
-  const onMouseDown = (e: any) => {
+  // 초기 위치: 오른쪽 하단
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // webInner 기준 오른쪽 하단
+      const containerW = Math.min(window.innerWidth, 480);
+      setPos({ x: containerW - BUTTON_SIZE - 16, y: window.innerHeight - 160 });
+      startPos.current = { x: containerW - BUTTON_SIZE - 16, y: window.innerHeight - 160 };
+    }
+  }, []);
+
+  const getClientXY = (e: any) => {
+    if (e.touches && e.touches.length > 0) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  };
+
+  const onStart = (e: any) => {
+    const { x, y } = getClientXY(e);
     dragging.current = true;
     moved.current = false;
-    startMouse.current = { x: e.clientX, y: e.clientY };
+    startInput.current = { x, y };
     startPos.current = { ...pos };
     e.preventDefault();
   };
 
   useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
+    const onMove = (e: any) => {
       if (!dragging.current) return;
-      const dx = e.clientX - startMouse.current.x;
-      const dy = e.clientY - startMouse.current.y;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved.current = true;
+      const { x, y } = getClientXY(e);
+      const dx = x - startInput.current.x;
+      const dy = y - startInput.current.y;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved.current = true;
+      const containerW = Math.min(window.innerWidth, 480);
       setPos({
-        x: Math.max(0, Math.min(420, startPos.current.x + dx)),
-        y: Math.max(60, Math.min(window.innerHeight - 80, startPos.current.y + dy)),
+        x: Math.max(0, Math.min(containerW - BUTTON_SIZE, startPos.current.x + dx)),
+        y: Math.max(60, Math.min(window.innerHeight - BUTTON_SIZE - 60, startPos.current.y + dy)),
       });
     };
-    const onMouseUp = () => {
+
+    const onEnd = () => {
       if (dragging.current && !moved.current) onPress();
       dragging.current = false;
     };
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onEnd);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onEnd);
+
     return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onEnd);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onEnd);
     };
   }, [pos, onPress]);
 
   return (
     <div
-      onMouseDown={onMouseDown}
+      onMouseDown={onStart}
+      onTouchStart={onStart}
       style={{
         position: "absolute",
         left: pos.x,
@@ -73,6 +97,7 @@ const WebFloatingButton = ({ onPress }: { onPress: () => void }) => {
         zIndex: 9999,
         boxShadow: "0 4px 16px rgba(67,97,238,0.45)",
         userSelect: "none",
+        touchAction: "none",
       }}
     >
       <span style={{ fontSize: 26 }}>🤖</span>
@@ -80,7 +105,7 @@ const WebFloatingButton = ({ onPress }: { onPress: () => void }) => {
   );
 };
 
-// ── 네이티브 전용 드래그 버튼 ──
+// ── 네이티브 전용 ──
 const NativeFloatingButton = ({ onPress }: { onPress: () => void }) => {
   const pan = useRef(new Animated.ValueXY({ x: 300, y: 600 })).current;
   const lastPos = useRef({ x: 300, y: 600 });
@@ -116,28 +141,21 @@ const NativeFloatingButton = ({ onPress }: { onPress: () => void }) => {
       style={{ position: "absolute", left: pan.x, top: pan.y, zIndex: 9999 }}
       {...panResponder.panHandlers}
     >
-      <View
-        style={{
-          width: BUTTON_SIZE,
-          height: BUTTON_SIZE,
-          borderRadius: BUTTON_SIZE / 2,
-          backgroundColor: "#4361ee",
-          alignItems: "center",
-          justifyContent: "center",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 10,
-        }}
-      >
+      <View style={{
+        width: BUTTON_SIZE, height: BUTTON_SIZE,
+        borderRadius: BUTTON_SIZE / 2,
+        backgroundColor: "#4361ee",
+        alignItems: "center", justifyContent: "center",
+        shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3, shadowRadius: 8, elevation: 10,
+      }}>
         <Text style={{ fontSize: 26 }}>🤖</Text>
       </View>
     </Animated.View>
   );
 };
 
-// ── 메인 컴포넌트 ──
+// ── 메인 ──
 const FloatingChatButton = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { breedId, breedNameKo } = useBreed();
@@ -153,7 +171,6 @@ const FloatingChatButton = () => {
   if (Platform.OS === "web") {
     return <WebFloatingButton onPress={handlePress} />;
   }
-
   return <NativeFloatingButton onPress={handlePress} />;
 };
 
