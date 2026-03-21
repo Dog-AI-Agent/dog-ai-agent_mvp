@@ -1,4 +1,4 @@
-import { get, put, post } from "./client";
+import { get, put, post, patch } from "./client";
 import { getAuthToken } from "./tokenStore";
 import type { AuthUser } from "../context/AuthContext";
 
@@ -25,6 +25,7 @@ export interface AnalysisHistoryItem {
   is_mixed_breed: boolean;
   image_url?: string | null;
   illustration_url?: string | null;
+  is_pinned: boolean;
   created_at: string;
 }
 
@@ -128,6 +129,10 @@ export const generateIllustration = (
     { "Content-Type": "application/json" },
     60000,
   );
+
+// ── My Dog 핀 토글 ──
+export const togglePin = (historyId: string): Promise<AnalysisHistoryItem> =>
+  patch<AnalysisHistoryItem>(`/users/me/analyses/${historyId}/pin`);
 
 // ── 분석 히스토리 선택 삭제 (POST 방식) ──
 export const deleteAnalyses = (

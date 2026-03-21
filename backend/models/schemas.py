@@ -81,6 +81,7 @@ class AnalysisHistoryResponse(BaseModel):
     is_mixed_breed: bool = False
     image_url: Optional[str] = None
     illustration_url: Optional[str] = None
+    is_pinned: bool = False
     created_at: str
 
 

@@ -87,6 +87,9 @@ export const post = <T>(path: string, body: BodyInit, headers?: Record<string, s
 export const put = <T>(path: string, body: BodyInit, headers?: Record<string, string>): Promise<T> =>
   request<T>(path, { method: "PUT", body, headers });
 
+export const patch = <T>(path: string, body?: BodyInit, headers?: Record<string, string>): Promise<T> =>
+  request<T>(path, { method: "PATCH", body, headers });
+
 export const del = <T>(path: string, body?: BodyInit, headers?: Record<string, string>): Promise<T> =>
   request<T>(path, { method: "DELETE", body, headers });
 

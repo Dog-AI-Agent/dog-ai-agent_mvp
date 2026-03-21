@@ -16,7 +16,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
 import { useAuth } from "../context/AuthContext";
-import { updateMe, getAnalyses, deleteAnalyses } from "../api/users";
+import { updateMe, getAnalyses, deleteAnalyses, togglePin } from "../api/users";
 import type { AnalysisHistoryItem } from "../api/users";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MyPage">;
@@ -377,6 +377,25 @@ const DogHistoryTab = () => {
     });
   };
 
+  const handleTogglePin = async (item: AnalysisHistoryItem) => {
+    try {
+      const updated = await togglePin(item.history_id);
+      setHistory((prev) =>
+        prev
+          .map((h) => (h.history_id === updated.history_id ? updated : h))
+          .sort((a, b) => {
+            if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+            return (
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+            );
+          }),
+      );
+    } catch (e: any) {
+      console.log("[DogHistory] 핀 토글 실패:", e.message);
+    }
+  };
+
   const formatDate = (iso: string) => {
     try {
       const d = new Date(iso);
@@ -595,6 +614,30 @@ const DogHistoryTab = () => {
                   </Text>
                 </View>
               )}
+              {/* My Dog 핀 배지 */}
+              {item.is_pinned && !selectionMode && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    backgroundColor: "#f59e0b",
+                    borderRadius: 12,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: "700",
+                      color: "#fff",
+                    }}
+                  >
+                    My Dog
+                  </Text>
+                </View>
+              )}
               {/* 체크 오버레이 */}
               {selectionMode && (
                 <View
@@ -629,34 +672,77 @@ const DogHistoryTab = () => {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 8,
-                  flexWrap: "wrap",
+                  justifyContent: "space-between",
                 }}
               >
-                <Text
-                  style={{ fontSize: 16, fontWeight: "700", color: "#1f2937" }}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    flexWrap: "wrap",
+                    flex: 1,
+                  }}
                 >
-                  {item.breed_name_ko}
-                </Text>
-                {item.is_mixed_breed && (
-                  <View
+                  <Text
                     style={{
-                      backgroundColor: "#fef3c7",
-                      borderRadius: 20,
-                      paddingHorizontal: 10,
-                      paddingVertical: 3,
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#1f2937",
                     }}
+                  >
+                    {item.breed_name_ko}
+                  </Text>
+                  {item.is_mixed_breed && (
+                    <View
+                      style={{
+                        backgroundColor: "#fef3c7",
+                        borderRadius: 20,
+                        paddingHorizontal: 10,
+                        paddingVertical: 3,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: "#d97706",
+                          fontWeight: "600",
+                        }}
+                      >
+                        믹스견
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                {!selectionMode && (
+                  <Pressable
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handleTogglePin(item);
+                    }}
+                    style={({ pressed }) => ({
+                      paddingHorizontal: 10,
+                      paddingVertical: 5,
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: item.is_pinned ? "#f59e0b" : "#d1d5db",
+                      backgroundColor: item.is_pinned
+                        ? "#fffbeb"
+                        : pressed
+                          ? "#f9fafb"
+                          : "#fff",
+                    })}
                   >
                     <Text
                       style={{
                         fontSize: 12,
-                        color: "#d97706",
                         fontWeight: "600",
+                        color: item.is_pinned ? "#d97706" : "#9ca3af",
                       }}
                     >
-                      믹스견
+                      {item.is_pinned ? "My Dog" : "My Dog"}
                     </Text>
-                  </View>
+                  </Pressable>
                 )}
               </View>
               {item.breed_name_en ? (
