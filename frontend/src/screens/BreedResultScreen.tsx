@@ -51,7 +51,6 @@ const DiseaseSection = ({ title, diseases, color, defaultOpen }: {
 }) => {
   const [open, setOpen] = useState(defaultOpen);
   if (diseases.length === 0) return null;
-
   return (
     <View style={{ marginBottom: 8 }}>
       <Pressable
@@ -195,7 +194,6 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
               </View>
             </View>
           </View>
-
           {!isPurebred && (
             <View style={{ backgroundColor: "#fef9c3", borderRadius: 10, padding: 10 }}>
               <Text style={{ fontSize: 12, color: "#a16207" }}>
@@ -215,7 +213,7 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
           </View>
         )}
 
-        {/* AI 일러스트 (회원 + 히스토리 저장된 경우만) */}
+        {/* AI 일러스트 (회원 + 분석 저장된 경우만) */}
         {!isGuest && analysisId && result.breed_name_en && (
           <View style={{ backgroundColor: "#faf5ff", borderRadius: 16, padding: 18, alignItems: "center", gap: 12 }}>
             <Text style={{ fontSize: 15, fontWeight: "700", color: "#7c3aed" }}>AI 일러스트</Text>

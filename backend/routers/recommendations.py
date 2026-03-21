@@ -553,9 +553,8 @@ async def get_summary(
     return SummaryResponse(summary=summary)
 
 
-# (origin/dev NDJSON 스트리밍 제거 - SSE 방식으로 통일)
-# @router.get("/summary/stream")
-async def get_summary_stream_REMOVED(
+# origin/dev NDJSON 방식 제거 - SSE /summary/stream 엔드포인트로 통일
+async def _legacy_ndjson_stream_REMOVED(
     breed_id: str = Query(
         ...,
         description="Breed ID (required)",
