@@ -38,12 +38,49 @@ interface BasicField {
 }
 
 const basicFields: BasicField[] = [
-  { label: "이름", key: "name", placeholder: "홍길동", autoCapitalize: "words", required: true },
-  { label: "이메일", key: "email", placeholder: "email@example.com", keyboardType: "email-address", autoCapitalize: "none", required: true },
-  { label: "닉네임", key: "nickname", placeholder: "댕댕이주인", autoCapitalize: "none", required: true },
-  { label: "비밀번호 (8자 이상)", key: "password", placeholder: "비밀번호 입력", secureTextEntry: true, autoCapitalize: "none", required: true },
-  { label: "비밀번호 확인", key: "passwordConfirm", placeholder: "비밀번호 재입력", secureTextEntry: true, autoCapitalize: "none", required: true },
-  { label: "생년월일", key: "birth_date", placeholder: "YYYY-MM-DD (예: 1990-01-15)" },
+  {
+    label: "이름",
+    key: "name",
+    placeholder: "홍길동",
+    autoCapitalize: "words",
+    required: true,
+  },
+  {
+    label: "이메일",
+    key: "email",
+    placeholder: "email@example.com",
+    keyboardType: "email-address",
+    autoCapitalize: "none",
+    required: true,
+  },
+  {
+    label: "닉네임",
+    key: "nickname",
+    placeholder: "댕댕이주인",
+    autoCapitalize: "none",
+    required: true,
+  },
+  {
+    label: "비밀번호 (8자 이상)",
+    key: "password",
+    placeholder: "비밀번호 입력",
+    secureTextEntry: true,
+    autoCapitalize: "none",
+    required: true,
+  },
+  {
+    label: "비밀번호 확인",
+    key: "passwordConfirm",
+    placeholder: "비밀번호 재입력",
+    secureTextEntry: true,
+    autoCapitalize: "none",
+    required: true,
+  },
+  {
+    label: "생년월일",
+    key: "birth_date",
+    placeholder: "YYYY-MM-DD (예: 1990-01-15)",
+  },
 ];
 
 // 다음 우편번호 스크립트 동적 로드 (웹 전용)
@@ -53,17 +90,24 @@ function useDaumPostcode() {
   useEffect(() => {
     if (Platform.OS !== "web" || loaded.current) return;
     const script = document.createElement("script");
-    script.src = "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+    script.src =
+      "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
     script.async = true;
-    script.onload = () => { loaded.current = true; };
+    script.onload = () => {
+      loaded.current = true;
+    };
     document.head.appendChild(script);
   }, []);
 
-  const open = (onComplete: (data: { zonecode: string; roadAddress: string }) => void) => {
+  const open = (
+    onComplete: (data: { zonecode: string; roadAddress: string }) => void,
+  ) => {
     if (Platform.OS !== "web") return;
     const w = window as any;
     if (!w.daum?.Postcode) {
-      alert("주소 검색 스크립트를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      alert(
+        "주소 검색 스크립트를 불러오는 중입니다. 잠시 후 다시 시도해주세요.",
+      );
       return;
     }
     new w.daum.Postcode({
@@ -100,14 +144,24 @@ const SignupScreen = ({ navigation }: Props) => {
 
   const handleAddressSearch = () => {
     openPostcode(({ zonecode, roadAddress }) => {
-      setForm((prev) => ({ ...prev, zonecode, address: roadAddress, addressDetail: "" }));
+      setForm((prev) => ({
+        ...prev,
+        zonecode,
+        address: roadAddress,
+        addressDetail: "",
+      }));
     });
   };
 
   const handleSignup = async () => {
     setError("");
 
-    if (!form.name.trim() || !form.email.trim() || !form.nickname.trim() || !form.password) {
+    if (
+      !form.name.trim() ||
+      !form.email.trim() ||
+      !form.nickname.trim() ||
+      !form.password
+    ) {
       setError("필수 항목을 모두 입력해주세요.");
       return;
     }
@@ -151,12 +205,18 @@ const SignupScreen = ({ navigation }: Props) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 32 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 24,
+          paddingVertical: 32,
+        }}
         keyboardShouldPersistTaps="handled"
       >
         <View className="items-center gap-2 mb-8">
           <Text className="text-3xl font-bold text-primary">회원가입</Text>
-          <Text className="text-sm text-muted">댕슐랭에 오신 것을 환영합니다!</Text>
+          <Text className="text-sm text-muted">
+            댕슐랭에 오신 것을 환영합니다!
+          </Text>
         </View>
 
         <View className="gap-4">
@@ -204,7 +264,11 @@ const SignupScreen = ({ navigation }: Props) => {
                   justifyContent: "center",
                 }}
               >
-                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>주소 검색</Text>
+                <Text
+                  style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}
+                >
+                  주소 검색
+                </Text>
               </Pressable>
             </View>
 
@@ -227,9 +291,7 @@ const SignupScreen = ({ navigation }: Props) => {
             />
           </View>
 
-          {error ? (
-            <Text className="text-sm text-red-500">{error}</Text>
-          ) : null}
+          {error ? <Text className="text-sm text-red-500">{error}</Text> : null}
 
           <Pressable
             className="mt-2 w-full rounded-xl bg-primary px-6 py-4 active:opacity-80"
@@ -239,7 +301,9 @@ const SignupScreen = ({ navigation }: Props) => {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text className="text-center text-base font-bold text-white">가입하기</Text>
+              <Text className="text-center text-base font-bold text-white">
+                가입하기
+              </Text>
             )}
           </Pressable>
         </View>

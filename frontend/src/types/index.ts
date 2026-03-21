@@ -168,3 +168,58 @@ export interface RecipeDetailResponse {
   target_diseases: string[];
   summary?: string;
 }
+
+// ── Community ──
+
+export type CommunityCategory =
+  | "recipe"
+  | "general_qna"
+  | "health_qna"
+  | "free";
+
+export interface CommunityRecipeIngredient {
+  name: string;
+  amount: string;
+}
+
+export interface CommunityRecipeData {
+  ingredients: CommunityRecipeIngredient[];
+  steps: string[];
+}
+
+export interface CommunityImage {
+  id: string;
+  image_url: string;
+}
+
+export interface CommunityPost {
+  post_id: string;
+  user_id: string;
+  nickname: string;
+  category: CommunityCategory;
+  title: string;
+  content: string;
+  recipe_data?: CommunityRecipeData | null;
+  images: CommunityImage[];
+  view_count: number;
+  like_count: number;
+  comment_count: number;
+  is_liked: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommunityPostListResponse {
+  posts: CommunityPost[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface CommunityComment {
+  comment_id: string;
+  user_id: string;
+  nickname: string;
+  content: string;
+  created_at: string;
+}

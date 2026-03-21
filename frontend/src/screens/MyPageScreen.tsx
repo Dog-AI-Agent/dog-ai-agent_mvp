@@ -975,9 +975,24 @@ const MyPageScreen = ({ navigation }: Props) => {
         >
           <Text style={{ fontSize: 22, color: "#6b7280" }}>←</Text>
         </Pressable>
-        <Text style={{ fontSize: 18, fontWeight: "700", color: "#1f2937" }}>
+        <Text
+          style={{ fontSize: 18, fontWeight: "700", color: "#1f2937", flex: 1 }}
+        >
           마이페이지
         </Text>
+        <Pressable
+          onPress={() => navigation.navigate("CommunityHome")}
+          style={({ pressed }) => ({
+            paddingHorizontal: 14,
+            paddingVertical: 7,
+            borderRadius: 20,
+            backgroundColor: pressed ? "#3451d1" : PRIMARY,
+          })}
+        >
+          <Text style={{ fontSize: 13, fontWeight: "600", color: "#fff" }}>
+            커뮤니티
+          </Text>
+        </Pressable>
       </View>
 
       <View

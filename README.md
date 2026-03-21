@@ -16,6 +16,7 @@
 | **맞춤 영양 추천** | 질환별 권장 영양소 → 식재료 → 레시피 단계별 추천                       |
 | **AI 추천 이유**   | GPT-4o-mini가 수의 영양사 관점에서 추천 근거 설명 (Lazy Loading)       |
 | **RAG 챗봇**       | 견종·질환·영양 DB를 컨텍스트로 주입한 대화형 상담                      |
+| **커뮤니티**       | 레시피 공유·Q&A·자유 게시판, 이미지 첨부·댓글·좋아요                   |
 | **소셜 로그인**    | Google / Naver / Kakao OAuth 지원                                      |
 
 ---
@@ -86,18 +87,19 @@ FastAPI Backend (port 8000)
 dog-ai-agent_mvp/
 ├── frontend/                  # React Native (Expo) 앱
 │   └── src/
-│       ├── api/               # API 클라이언트 (auth, ai, breeds, chat 등)
+│       ├── api/               # API 클라이언트 (auth, ai, breeds, chat, community 등)
 │       ├── components/        # 공통 UI 컴포넌트
 │       ├── context/           # AuthContext, BreedContext
-│       ├── screens/           # 화면 (Login, Upload, Result, Recommendation 등)
+│       ├── screens/           # 화면 (Login, Upload, Result, Community 등)
 │       ├── navigation/        # RootStack (인증 분기)
 │       ├── types/             # TypeScript 타입 정의
 │       └── utils/             # 유틸리티 함수
 │
 ├── backend/                   # FastAPI 메인 API 서버
-│   ├── routers/               # 엔드포인트 (ai, auth, breeds, chat 등)
+│   ├── routers/               # 엔드포인트 (ai, auth, breeds, chat, community 등)
 │   ├── services/              # LLM 서비스, 챗봇 서비스
 │   ├── models/                # Pydantic 스키마
+│   ├── migrations/            # DB 마이그레이션 SQL
 │   ├── schema.sql             # DB 스키마 (Supabase SQL)
 │   └── seed.py                # 시드 데이터 스크립트
 │
@@ -117,19 +119,25 @@ dog-ai-agent_mvp/
 
 모든 엔드포인트는 `/api/v1` 접두사를 사용합니다.
 
-| 분류   | Method  | Endpoint                       | 설명                                 |
-| ------ | ------- | ------------------------------ | ------------------------------------ |
-| 인증   | POST    | `/auth/signup`                 | 회원가입 (JWT 발급)                  |
-| 인증   | POST    | `/auth/login`                  | 로그인 (JWT 발급)                    |
-| AI     | POST    | `/ai/breed-recognition`        | 이미지 → 견종 분류 (Top-3)           |
-| AI     | POST    | `/ai/gradcam`                  | GradCAM 히트맵 생성                  |
-| 견종   | GET     | `/breeds`                      | 견종 목록 (검색, 필터, 페이지네이션) |
-| 질환   | GET     | `/diseases/{id}`               | 질환 상세 + 권장 영양소              |
-| 추천   | GET     | `/recommendations`             | 영양소·식재료·레시피 추천 (DB)       |
-| 추천   | GET     | `/recommendations/summary`     | AI 추천 요약 (LLM, Lazy)             |
-| 챗봇   | POST    | `/chat/sessions`               | 채팅 세션 생성                       |
-| 챗봇   | POST    | `/chat/sessions/{id}/messages` | 메시지 전송 + AI 응답                |
-| 사용자 | GET/PUT | `/users/me`                    | 프로필 조회/수정                     |
+| 분류     | Method  | Endpoint                         | 설명                                 |
+| -------- | ------- | -------------------------------- | ------------------------------------ |
+| 인증     | POST    | `/auth/signup`                   | 회원가입 (JWT 발급)                  |
+| 인증     | POST    | `/auth/login`                    | 로그인 (JWT 발급)                    |
+| AI       | POST    | `/ai/breed-recognition`          | 이미지 → 견종 분류 (Top-3)           |
+| AI       | POST    | `/ai/gradcam`                    | GradCAM 히트맵 생성                  |
+| 견종     | GET     | `/breeds`                        | 견종 목록 (검색, 필터, 페이지네이션) |
+| 질환     | GET     | `/diseases/{id}`                 | 질환 상세 + 권장 영양소              |
+| 추천     | GET     | `/recommendations`               | 영양소·식재료·레시피 추천 (DB)       |
+| 추천     | GET     | `/recommendations/summary`       | AI 추천 요약 (LLM, Lazy)             |
+| 챗봇     | POST    | `/chat/sessions`                 | 채팅 세션 생성                       |
+| 챗봇     | POST    | `/chat/sessions/{id}/messages`   | 메시지 전송 + AI 응답                |
+| 사용자   | GET/PUT | `/users/me`                      | 프로필 조회/수정                     |
+| 커뮤니티 | GET     | `/community/posts`               | 게시글 목록 (카테고리·검색·정렬)     |
+| 커뮤니티 | POST    | `/community/posts`               | 게시글 작성                          |
+| 커뮤니티 | GET     | `/community/posts/{id}`          | 게시글 상세 조회                     |
+| 커뮤니티 | POST    | `/community/posts/{id}/images`   | 게시글 이미지 업로드 (최대 5장)      |
+| 커뮤니티 | POST    | `/community/posts/{id}/like`     | 좋아요 토글                          |
+| 커뮤니티 | POST    | `/community/posts/{id}/comments` | 댓글 작성                            |
 
 ---
 
@@ -158,6 +166,13 @@ dog-ai-agent_mvp/
 - **Backend**: 비즈니스 로직, DB, 인증, LLM 오케스트레이션
 - **AI Service**: TensorFlow 모델 추론 (무거운 연산 격리)
 - 서버 시작 시 모델 사전 로딩 (`lifespan`)으로 콜드 스타트 방지
+
+### 커뮤니티
+
+- 4개 카테고리: 레시피 공유, 일반 Q&A, 건강 Q&A, 자유
+- 레시피 게시글은 재료·조리단계를 구조화된 JSONB로 저장
+- 이미지 최대 5장 (Supabase Storage), 좋아요·댓글, 검색·정렬(최신/인기)
+- 비정규화 카운터 (like_count, comment_count, view_count)로 성능 최적화
 
 ---
 
@@ -219,13 +234,13 @@ EXPO_PUBLIC_API_URL=
 
 ## 팀 구성
 
-| 이름            | 역할                        |
-| --------------- | --------------------         |
-| 김재현          | Project Leader, AI Service  |
-| 최동원          | Backend, Release            |
-| 이민혜          | Frontend, Backend           |
-| 송진우          | Frontend, Backend           |
-| 장승우          | AI Service, Data Analysis   |
+| 이름   | 역할                       |
+| ------ | -------------------------- |
+| 김재현 | Project Leader, AI Service |
+| 최동원 | Backend, Release           |
+| 이민혜 | Frontend, Backend          |
+| 송진우 | Frontend, Backend          |
+| 장승우 | AI Service, Data Analysis  |
 
 ---
 

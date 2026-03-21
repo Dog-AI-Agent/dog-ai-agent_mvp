@@ -3,6 +3,7 @@
 ## 최초 환경 설정 (처음 클론 후 1회)
 
 ### 백엔드 venv 생성 (Python 3.11 권장)
+
 ```powershell
 cd D:\...\dog-ai-agent_mvp
 py -3.11 -m venv backend\.venv
@@ -11,6 +12,7 @@ py -3.11 -m venv backend\.venv
 ```
 
 ### AI 서버 venv 생성 (Python 3.12 권장)
+
 ```powershell
 cd D:\...\dog-ai-agent_mvp\ai-service
 py -3.12 -m venv .venv
@@ -19,6 +21,7 @@ py -3.12 -m venv .venv
 ```
 
 ### 프론트엔드 패키지 설치
+
 ```powershell
 cd D:\...\dog-ai-agent_mvp\frontend
 npm install

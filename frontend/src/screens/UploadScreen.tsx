@@ -47,7 +47,10 @@ const compressImage = (uri: string): Promise<string> => {
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext("2d");
-      if (!ctx) { resolve(uri); return; }
+      if (!ctx) {
+        resolve(uri);
+        return;
+      }
       ctx.drawImage(img, 0, 0, width, height);
       resolve(canvas.toDataURL("image/jpeg", 0.7));
     };
