@@ -16,7 +16,13 @@ export type RootStackParamList = {
   Signup: undefined;
   // App
   Upload: undefined;
-  BreedResult: { result: BreedRecognitionResponse; imageUri: string; gradcamUri?: string };
+  BreedResult: {
+    result: BreedRecognitionResponse;
+    imageUri: string;
+    gradcamUri?: string;
+    historyId?: string;
+    illustrationUrl?: string;
+  };
   Recommendation: {
     breedId: string;
     breedNameKo: string;
@@ -43,7 +49,10 @@ const RootStack = () => {
         <>
           <Stack.Screen name="Upload" component={UploadScreen} />
           <Stack.Screen name="BreedResult" component={BreedResultScreen} />
-          <Stack.Screen name="Recommendation" component={RecommendationScreen} />
+          <Stack.Screen
+            name="Recommendation"
+            component={RecommendationScreen}
+          />
           <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="MyPage" component={MyPageScreen} />

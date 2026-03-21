@@ -17,9 +17,9 @@ BUCKET_NAME = "illustrations"
 _build_illustration_prompt = (
     lambda breed_name_en: (
         f"A single adorable chibi-style cartoon illustration of a {breed_name_en} dog. "
-        "The dog is sitting and looking at the viewer with big sparkling eyes. "
-        "Soft pastel color palette, rounded shapes, minimal background with a few hearts and stars. "
-        "Clean vector art style, no text, no watermark, white background."
+        "The dog is walking to the right, shown from the side profile view with a cheerful expression. "
+        "Soft pastel color palette, rounded shapes. "
+        "Clean vector art style, no text, no watermark, plain solid white background with nothing else."
     )
 )
 

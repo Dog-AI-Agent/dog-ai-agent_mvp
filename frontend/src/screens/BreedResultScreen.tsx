@@ -157,13 +157,24 @@ const DiseaseSection = ({
 };
 
 const BreedResultScreen = ({ navigation, route }: Props) => {
-  const { result, imageUri, gradcamUri } = route.params;
+  const {
+    result,
+    imageUri,
+    gradcamUri,
+    historyId,
+    illustrationUrl: paramIllustrationUrl,
+  } = route.params;
+  const isFromHistory = !!historyId;
   const [breedDetail, setBreedDetail] = useState<BreedDetailResponse | null>(
     null,
   );
   const [loading, setLoading] = useState(false);
-  const [analysisId, setAnalysisId] = useState<string | null>(null);
-  const [illustrationUrl, setIllustrationUrl] = useState<string | null>(null);
+  const [analysisId, setAnalysisId] = useState<string | null>(
+    historyId ?? null,
+  );
+  const [illustrationUrl, setIllustrationUrl] = useState<string | null>(
+    paramIllustrationUrl ?? null,
+  );
   const [illustrationLoading, setIllustrationLoading] = useState(false);
   const { setBreed } = useBreed();
 
@@ -172,24 +183,25 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
 
     setBreed(result.breed_id, result.breed_name_ko);
 
-    // 강아지 프로필 품종 자동 저장 (없으면 생성)
-    updateMyDog({ breed_id: result.breed_id }).catch(() => {
-      createMyDog({ name: "내 강아지", breed_id: result.breed_id! }).catch(
-        () => {},
-      );
-    });
+    if (!isFromHistory) {
+      // 새 분석일 때만 프로필 저장 + 히스토리 저장
+      updateMyDog({ breed_id: result.breed_id }).catch(() => {
+        createMyDog({ name: "내 강아지", breed_id: result.breed_id! }).catch(
+          () => {},
+        );
+      });
 
-    // 분석 히스토리 저장 (이미지 포함) → history_id 캡처
-    saveAnalysis({
-      breed_id: result.breed_id,
-      breed_name_ko: result.breed_name_ko,
-      breed_name_en: result.breed_name_en,
-      confidence: result.confidence,
-      is_mixed_breed: result.confidence < 0.5,
-      imageUri: imageUri,
-    })
-      .then((saved) => setAnalysisId(saved.history_id))
-      .catch(() => {});
+      saveAnalysis({
+        breed_id: result.breed_id,
+        breed_name_ko: result.breed_name_ko,
+        breed_name_en: result.breed_name_en,
+        confidence: result.confidence,
+        is_mixed_breed: result.confidence < 0.5,
+        imageUri: imageUri,
+      })
+        .then((saved) => setAnalysisId(saved.history_id))
+        .catch(() => {});
+    }
 
     setLoading(true);
     getBreed(result.breed_id)
