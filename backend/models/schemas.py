@@ -80,6 +80,7 @@ class AnalysisHistoryResponse(BaseModel):
     confidence: Optional[float] = None
     is_mixed_breed: bool = False
     image_url: Optional[str] = None
+    illustration_url: Optional[str] = None
     created_at: str
 
 

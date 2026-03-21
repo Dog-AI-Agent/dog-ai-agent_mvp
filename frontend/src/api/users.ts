@@ -2,7 +2,8 @@ import { get, put, post } from "./client";
 import { getAuthToken } from "./tokenStore";
 import type { AuthUser } from "../context/AuthContext";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
 export interface DogInfo {
   dog_id: string;
@@ -23,6 +24,7 @@ export interface AnalysisHistoryItem {
   confidence?: number | null;
   is_mixed_breed: boolean;
   image_url?: string | null;
+  illustration_url?: string | null;
   created_at: string;
 }
 
@@ -40,20 +42,25 @@ export interface DogPayload {
   favorite_ingredients?: string[];
 }
 
-export const getMe = (): Promise<AuthUser> =>
-  get<AuthUser>("/users/me");
+export const getMe = (): Promise<AuthUser> => get<AuthUser>("/users/me");
 
 export const updateMe = (payload: UserUpdatePayload): Promise<AuthUser> =>
-  put<AuthUser>("/users/me", JSON.stringify(payload), { "Content-Type": "application/json" });
+  put<AuthUser>("/users/me", JSON.stringify(payload), {
+    "Content-Type": "application/json",
+  });
 
 export const getMyDog = (): Promise<DogInfo | null> =>
   get<DogInfo | null>("/users/me/dog");
 
 export const createMyDog = (payload: DogPayload): Promise<DogInfo> =>
-  post<DogInfo>("/users/me/dog", JSON.stringify(payload), { "Content-Type": "application/json" });
+  post<DogInfo>("/users/me/dog", JSON.stringify(payload), {
+    "Content-Type": "application/json",
+  });
 
 export const updateMyDog = (payload: Partial<DogPayload>): Promise<DogInfo> =>
-  put<DogInfo>("/users/me/dog", JSON.stringify(payload), { "Content-Type": "application/json" });
+  put<DogInfo>("/users/me/dog", JSON.stringify(payload), {
+    "Content-Type": "application/json",
+  });
 
 // ── 분석 히스토리 저장 (multipart) ──
 export const saveAnalysis = async (data: {
@@ -71,7 +78,8 @@ export const saveAnalysis = async (data: {
   formData.append("breed_name_ko", data.breed_name_ko);
   if (data.breed_id) formData.append("breed_id", data.breed_id);
   if (data.breed_name_en) formData.append("breed_name_en", data.breed_name_en);
-  if (data.confidence != null) formData.append("confidence", String(data.confidence));
+  if (data.confidence != null)
+    formData.append("confidence", String(data.confidence));
   formData.append("is_mixed_breed", String(data.is_mixed_breed ?? false));
 
   if (data.imageUri) {
@@ -110,8 +118,21 @@ export const saveAnalysis = async (data: {
 export const getAnalyses = (): Promise<AnalysisHistoryItem[]> =>
   get<AnalysisHistoryItem[]>("/users/me/analyses");
 
+// ── 일러스트 생성 ──
+export const generateIllustration = (
+  analysisId: string,
+): Promise<{ illustration_url: string }> =>
+  post<{ illustration_url: string }>(
+    `/users/me/analyses/${analysisId}/illustration`,
+    "",
+    { "Content-Type": "application/json" },
+    60000,
+  );
+
 // ── 분석 히스토리 선택 삭제 (POST 방식) ──
-export const deleteAnalyses = (historyIds: string[]): Promise<{ deleted: number }> =>
+export const deleteAnalyses = (
+  historyIds: string[],
+): Promise<{ deleted: number }> =>
   post<{ deleted: number }>(
     "/users/me/analyses/delete",
     JSON.stringify({ history_ids: historyIds }),
