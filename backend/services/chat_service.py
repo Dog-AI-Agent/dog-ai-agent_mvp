@@ -1,7 +1,9 @@
 """
 Chat Service — breed_id 기반 SQL 컨텍스트 검색 + OpenAI 챗봇
 """
+import asyncio
 import logging
+from collections.abc import AsyncGenerator
 
 from openai import OpenAI
 
@@ -96,13 +98,23 @@ def _fetch_breed_context(breed_id: str) -> str:
             if bd.get("diseases", {}).get("id")
         ]
         if disease_ids:
-            recipes = (
-                sb.table("recipe_target_diseases")
-                .select("recipes(id, title, description, difficulty, cook_time_min)")
-                .in_("disease_id", disease_ids)
-                .limit(10)
-                .execute()
-            )
+            select_fields = "recipes(id, title_ko, title_en, description, difficulty, cook_time_min)"
+            try:
+                recipes = (
+                    sb.table("recipe_target_diseases")
+                    .select(select_fields)
+                    .in_("disease_id", disease_ids)
+                    .limit(10)
+                    .execute()
+                )
+            except Exception:
+                recipes = (
+                    sb.table("recipe_diseases")
+                    .select(select_fields)
+                    .in_("disease_id", disease_ids)
+                    .limit(10)
+                    .execute()
+                )
             if recipes.data:
                 seen = set()
                 recipe_lines = []
@@ -111,8 +123,9 @@ def _fetch_breed_context(breed_id: str) -> str:
                     if not rec or rec.get("id") in seen:
                         continue
                     seen.add(rec["id"])
+                    title = rec.get("title_ko") or rec.get("title_en") or "?"
                     recipe_lines.append(
-                        f"- {rec.get('title', '?')} "
+                        f"- {title} "
                         f"(난이도: {rec.get('difficulty', '?')}, "
                         f"조리시간: {rec.get('cook_time_min', '?')}분)\n"
                         f"  설명: {rec.get('description', '정보 없음')}"
@@ -195,3 +208,69 @@ async def get_chat_response(
     except Exception:
         logger.exception("Chat LLM call failed")
         return fallback
+
+
+async def stream_chat_response(
+    breed_id: str,
+    user_message: str,
+    history: list[dict],
+) -> AsyncGenerator[str, None]:
+    """스트리밍 방식으로 OpenAI 응답을 생성하는 async generator.
+    동기 OpenAI SDK의 stream=True를 asyncio.Queue로 브릿지."""
+
+    if not OPENAI_API_KEY:
+        yield "죄송합니다. 일시적으로 응답을 생성할 수 없습니다. 잠시 후 다시 시도해주세요."
+        return
+
+    try:
+        context = _fetch_breed_context(breed_id)
+    except Exception:
+        logger.exception("Failed to fetch breed context")
+        context = "해당 품종에 대한 데이터가 없습니다."
+
+    sb = get_supabase()
+    breed_row = (
+        sb.table("breeds")
+        .select("name_ko")
+        .eq("id", breed_id)
+        .limit(1)
+        .execute()
+    )
+    breed_name = breed_row.data[0].get("name_ko", breed_id) if breed_row.data else breed_id
+
+    system_prompt = _build_system_prompt(context, breed_name)
+
+    messages: list[dict] = [{"role": "system", "content": system_prompt}]
+    for msg in history[-MAX_HISTORY:]:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    messages.append({"role": "user", "content": user_message})
+
+    queue: asyncio.Queue[str | None] = asyncio.Queue()
+    loop = asyncio.get_event_loop()
+
+    def _run_stream():
+        try:
+            client = OpenAI(api_key=OPENAI_API_KEY)
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1024,
+                stream=True,
+            )
+            for chunk in response:
+                token = chunk.choices[0].delta.content if chunk.choices[0].delta.content else ""
+                if token:
+                    loop.call_soon_threadsafe(queue.put_nowait, token)
+        except Exception:
+            logger.exception("Chat streaming LLM call failed")
+        finally:
+            loop.call_soon_threadsafe(queue.put_nowait, None)
+
+    loop.run_in_executor(None, _run_stream)
+
+    while True:
+        token = await queue.get()
+        if token is None:
+            break
+        yield token

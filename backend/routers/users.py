@@ -83,6 +83,8 @@ def _to_analysis_response(row: dict) -> AnalysisHistoryResponse:
         confidence=row.get("confidence"),
         is_mixed_breed=row.get("is_mixed_breed") or False,
         image_url=row.get("image_url"),
+        illustration_url=row.get("illustration_url"),
+        is_pinned=row.get("is_pinned") or False,
         created_at=str(row["created_at"]),
     )
 
@@ -229,10 +231,76 @@ async def get_analyses(user_id: str = Depends(get_current_user_id)):
         db.table("analysis_history")
         .select("*")
         .eq("user_id", user_id)
+        .order("is_pinned", desc=True)
         .order("created_at", desc=True)
         .execute()
     )
     return [_to_analysis_response(r) for r in result.data]
+
+
+# ── 일러스트 생성 ──
+@router.post("/me/analyses/{analysis_id}/illustration")
+async def generate_illustration(
+    analysis_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    db = get_supabase()
+
+    # 해당 유저 소유 분석인지 검증
+    result = (
+        db.table("analysis_history")
+        .select("*")
+        .eq("id", analysis_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    if not result.data:
+        raise HTTPException(status_code=404, detail="분석 기록을 찾을 수 없습니다.")
+
+    row = result.data[0]
+
+    # 이미 생성된 일러스트가 있으면 재사용 (멱등성 + 비용 절약)
+    if row.get("illustration_url"):
+        return {"illustration_url": row["illustration_url"]}
+
+    breed_name_en = row.get("breed_name_en")
+    if not breed_name_en:
+        raise HTTPException(status_code=400, detail="영문 품종명이 없어 일러스트를 생성할 수 없습니다.")
+
+    from backend.services.illustration_service import _generate
+
+    illustration_url = await _generate(breed_name_en, user_id, analysis_id)
+    return {"illustration_url": illustration_url}
+
+
+# ── My Dog 핀 토글 ──
+@router.patch("/me/analyses/{history_id}/pin", response_model=AnalysisHistoryResponse)
+async def toggle_pin(
+    history_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    db = get_supabase()
+    result = (
+        db.table("analysis_history")
+        .select("*")
+        .eq("id", history_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    if not result.data:
+        raise HTTPException(status_code=404, detail="분석 기록을 찾을 수 없습니다.")
+
+    current = result.data[0].get("is_pinned") or False
+    updated = (
+        db.table("analysis_history")
+        .update({"is_pinned": not current})
+        .eq("id", history_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    if not updated.data:
+        raise HTTPException(status_code=500, detail="핀 상태 변경에 실패했습니다.")
+    return _to_analysis_response(updated.data[0])
 
 
 # ── 분석 히스토리 선택 삭제 ──
