@@ -8,9 +8,120 @@ from backend.models.schemas import (
     RecipeIngredient,
     RecipeStep,
 )
-from backend.services.llm_service import generate_recipe_summary
+import time
+import asyncio
+from fastapi.responses import StreamingResponse, JSONResponse
+from backend.services.llm_service import generate_recipe_summary, generate_recipe_summary_stream
+
+# ── 인메모리 요약 캐시 (recipe_id → summary 텍스트) ──
+# 프롬프트 변경 시 서버 재시작하면 자동 카시 초기화
+_summary_cache: dict[str, str] = {}
+_summary_cache_ts: dict[str, float] = {}
+_CACHE_TTL = 3600  # 1시간
+_inflight_locks: dict[str, asyncio.Lock] = {}
+
+
+def _cache_get(recipe_id: str) -> str | None:
+    ts = _summary_cache_ts.get(recipe_id)
+    if ts and time.time() - ts < _CACHE_TTL:
+        return _summary_cache.get(recipe_id)
+    return None
+
+
+def _cache_set(recipe_id: str, summary: str):
+    _summary_cache[recipe_id] = summary
+    _summary_cache_ts[recipe_id] = time.time()
 
 router = APIRouter(prefix="/recipes", tags=["Recipes"])
+
+
+@router.get("/{recipe_id}/stream")
+async def stream_recipe_summary(
+    recipe_id: str,
+    breed_id: Optional[str] = Query(None),
+):
+    """LLM 요약 - 캐시 우선(JSON) → 미스 시 SSE 스트리밍"""
+    import logging
+    logger = logging.getLogger("recipes.stream")
+    t0 = time.perf_counter()
+
+    # 1) 캐시 히트 → 즉시 JSON 반환 (TTFT=0)
+    cache_key = f"{recipe_id}:{breed_id or ''}"
+    cached = _cache_get(cache_key)
+    if cached:
+        logger.info(f"[TIMING] cache hit {recipe_id} {(time.perf_counter()-t0)*1000:.0f}ms")
+        return JSONResponse({"status": "complete", "summary": cached, "cached": True})
+
+    db = get_supabase()
+    recipe_result = db.table("recipes").select("*").eq("id", recipe_id).execute()
+    if not recipe_result.data:
+        return JSONResponse({"error": "recipe not found"}, status_code=404)
+
+    recipe = recipe_result.data[0]
+    title = recipe.get("title") or recipe.get("title_ko") or ""
+
+    ing_result = db.table("recipe_ingredients").select("name").eq("recipe_id", recipe_id).execute()
+    ingredient_names = list({r["name"] for r in ing_result.data})
+
+    target_diseases: list[str] = []
+    for table_name in ("recipe_target_diseases", "recipe_diseases"):
+        try:
+            rd = db.table(table_name).select("diseases(name_ko)").eq("recipe_id", recipe_id).execute()
+            target_diseases = [r["diseases"]["name_ko"] for r in rd.data if r.get("diseases")]
+            break
+        except Exception:
+            continue
+
+    breed_name_ko, breed_size = "사랑스러운 강아지", None
+    if breed_id:
+        br = db.table("breeds").select("name_ko, size_category").eq("id", breed_id).execute()
+        if br.data:
+            breed_name_ko = br.data[0].get("name_ko", breed_name_ko)
+            breed_size = br.data[0].get("size_category")
+
+    logger.info(f"[TIMING] db fetch done {(time.perf_counter()-t0)*1000:.0f}ms")
+
+    # 2) 동일 recipe_id 동시 요청 dedupe
+    if cache_key not in _inflight_locks:
+        _inflight_locks[cache_key] = asyncio.Lock()
+
+    async def sse_generator():
+        async with _inflight_locks[cache_key]:
+            # 락 획득 후 다시 캐시 확인 (dedupe)
+            cached2 = _cache_get(cache_key)
+            if cached2:
+                escaped = cached2.replace("\n", "\\n")
+                yield f"data: {escaped}\n\n"
+                yield "data: [DONE]\n\n"
+                return
+
+            full_chunks: list[str] = []
+            first_token = True
+            async for token in generate_recipe_summary_stream(
+                recipe_title_ko=title,
+                ingredient_names=ingredient_names,
+                breed_name_ko=breed_name_ko,
+                breed_size=breed_size,
+                disease_names=target_diseases,
+            ):
+                if first_token:
+                    logger.info(f"[TIMING] first token {(time.perf_counter()-t0)*1000:.0f}ms")
+                    first_token = False
+                full_chunks.append(token)
+                escaped = token.replace("\n", "\\n")
+                yield f"data: {escaped}\n\n"
+
+            # 완성 후 캐시 저장
+            full_text = "".join(full_chunks)
+            _cache_set(cache_key, full_text)
+            logger.info(f"[TIMING] stream done, cached. total={( time.perf_counter()-t0)*1000:.0f}ms")
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        sse_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.get("/{recipe_id}", response_model=RecipeDetailResponse)

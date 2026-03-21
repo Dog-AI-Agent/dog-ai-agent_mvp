@@ -7,6 +7,7 @@ import BreedResultScreen from "../screens/BreedResultScreen";
 import RecommendationScreen from "../screens/RecommendationScreen";
 import RecipeDetailScreen from "../screens/RecipeDetailScreen";
 import ChatScreen from "../screens/ChatScreen";
+import GuestUploadScreen from "../screens/GuestUploadScreen";
 import MyPageScreen from "../screens/MyPageScreen";
 import type { BreedRecognitionResponse } from "../types";
 
@@ -14,13 +15,14 @@ export type RootStackParamList = {
   // Auth
   Login: undefined;
   Signup: undefined;
+  // Guest
+  GuestUpload: undefined;
   // App
   Upload: undefined;
-  BreedResult: { result: BreedRecognitionResponse; imageUri: string; gradcamUri?: string };
+  BreedResult: { result: BreedRecognitionResponse; imageUri: string; gradcamUri?: string; isGuest?: boolean };
   Recommendation: {
     breedId: string;
     breedNameKo: string;
-    imageUri?: string;
   };
   RecipeDetail: { recipeId: string; breedId?: string };
   Chat: { breedId: string; breedNameKo: string; sessionId?: string };
@@ -52,6 +54,9 @@ const RootStack = () => {
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="GuestUpload" component={GuestUploadScreen} />
+          <Stack.Screen name="BreedResult" component={BreedResultScreen} />
+          <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
         </>
       )}
     </Stack.Navigator>

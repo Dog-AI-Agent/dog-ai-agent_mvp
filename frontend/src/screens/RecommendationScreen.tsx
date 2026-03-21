@@ -456,29 +456,78 @@ const RecipeCardItem = ({
   );
 };
 
-// ── AI 추천 이유 (lazy 로딩 - 펼칠 때만 fetch) ──
+// ── AI 추천 이유 - 진입 즉시 프리패치 + 스트리밍 ──
 const CollapsibleSummary = ({ breedId }: { breedId: string }) => {
   const [expanded, setExpanded] = useState(false);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const [fetched, setFetched] = useState(false);
+  const [streamText, setStreamText] = useState("");
+  const [streaming, setStreaming] = useState(false);
+
+  const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+  const API_BASE = BASE_URL.replace(/\/api\/v1$/, "");
+  const url = `${API_BASE}/api/v1/recommendations/summary/stream?breed_id=${breedId}`;
+
+  // 화면 진입 즉시 프리패치
+  useEffect(() => {
+    let cancelled = false;
+    setStreaming(true);
+
+    const run = async () => {
+      try {
+        const res = await fetch(url, {
+          headers: { "ngrok-skip-browser-warning": "true" },
+        });
+        const contentType = res.headers.get("content-type") || "";
+
+        // 캐시 히트: JSON 즉시 반환
+        if (contentType.includes("application/json")) {
+          const data = await res.json();
+          if (!cancelled) {
+            setStreamText(data.summary || "");
+            setStreaming(false);
+          }
+          return;
+        }
+
+        // SSE 스트리밍
+        const reader = res.body?.getReader();
+        const decoder = new TextDecoder();
+        if (!reader) return;
+
+        let sseBuffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done || cancelled) break;
+          sseBuffer += decoder.decode(value, { stream: true });
+
+          const events = sseBuffer.split("\n\n");
+          sseBuffer = events.pop() ?? "";
+
+          for (const event of events) {
+            const line = event.trim();
+            if (!line.startsWith("data: ")) continue;
+            const token = line.slice(6);
+            if (token === "[DONE]") break;
+            setStreamText((prev) => prev + token.replace(/\\n/g, "\n"));
+          }
+        }
+      } catch (e) {
+        if (!cancelled) setStreamText("AI 요약을 불러오지 못했습니다.");
+      } finally {
+        if (!cancelled) setStreaming(false);
+      }
+    };
+
+    run();
+    return () => { cancelled = true; };
+  }, [url]);
 
   const handleToggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    const next = !expanded;
-    setExpanded(next);
-    if (next && !fetched) {
-      setFetched(true);
-      setSummaryLoading(true);
-      getRecommendationSummary(breedId)
-        .then((res) => setSummary(res.summary))
-        .catch(() => setSummary("AI 요약을 불러오지 못했습니다."))
-        .finally(() => setSummaryLoading(false));
-    }
+    setExpanded((v) => !v);
   };
 
-  const plainText = summary
-    ? extractReasonOnly(summary)
+  const plainText = streamText
+    ? extractReasonOnly(streamText)
         .replace(/^#{1,4}\s*/gm, "")
         .replace(/\*\*/g, "")
         .replace(/^[-•*]\s*/gm, "")
@@ -488,52 +537,44 @@ const CollapsibleSummary = ({ breedId }: { breedId: string }) => {
   return (
     <Pressable
       onPress={handleToggle}
-      style={{
-        backgroundColor: "#eef1ff",
-        borderRadius: 16,
-        padding: 16,
-        gap: 8,
-      }}
+      style={{ backgroundColor: "#eef1ff", borderRadius: 16, padding: 16, gap: 8 }}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Text style={{ fontSize: 15 }}>💡</Text>
-          <Text style={{ fontSize: 13, fontWeight: "700", color: "#4361ee" }}>
-            AI 추천 이유
-          </Text>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: "#4361ee" }}>AI 추천 이유</Text>
+          {streaming && <Text style={{ fontSize: 10, color: "#c7d2fe" }}>🤖 로딩 중...</Text>}
         </View>
         <Text style={{ fontSize: 12, color: "#6b7280" }}>
           {expanded ? "접기 ▲" : "더 보기 ▼"}
         </Text>
       </View>
+
+      {/* 펼치기 전: 선운 표시 */}
       {!expanded && (
-        <Text style={{ fontSize: 12, color: "#9ca3af", fontStyle: "italic" }}>
-          누르면 AI 요약을 불러옵니다
+        <Text style={{ fontSize: 12, color: streaming ? "#818cf8" : "#9ca3af", fontStyle: "italic" }}>
+          {streaming ? "🤖 AI 분석 준비 중..." : "👆 탭하면 AI 추천 이유를 확인할 수 있어요"}
         </Text>
       )}
-      {expanded && summaryLoading && (
-        <Text
-          style={{
-            fontSize: 13,
-            color: "#9ca3af",
-            textAlign: "center",
-            paddingVertical: 8,
-          }}
-        >
-          🤖 AI 분석 중...
-        </Text>
+
+      {/* 펼쳐진 상태 */}
+      {expanded && (
+        <View>
+          {streaming && !plainText && (
+            <Text style={{ fontSize: 13, color: "#9ca3af", textAlign: "center", paddingVertical: 8 }}>
+              🤖 AI 분석 중...
+            </Text>
+          )}
+          {plainText ? (
+            <View>
+              <Text style={{ fontSize: 13, color: "#374151", lineHeight: 20 }}>
+                {plainText}
+              </Text>
+              {streaming && <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>▋</Text>}
+            </View>
+          ) : null}
+        </View>
       )}
-      {expanded && !summaryLoading && plainText ? (
-        <Text style={{ fontSize: 13, color: "#374151", lineHeight: 20 }}>
-          {plainText}
-        </Text>
-      ) : null}
     </Pressable>
   );
 };
@@ -743,7 +784,7 @@ const NutrientCard = ({
 };
 
 const RecommendationScreen = ({ navigation, route }: Props) => {
-  const { breedId, breedNameKo } = route.params;
+  const { breedId, breedNameKo } = route.params; // imageUri 제거 - base64 너무 커서 navigation 실패
   const [data, setData] = useState<RecommendationResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

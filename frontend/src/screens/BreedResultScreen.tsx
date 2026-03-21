@@ -40,9 +40,9 @@ const downgradeRisk = (level: string): string => {
 const RISK_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
 const InfoCard = ({ label, value }: { label: string; value: string }) => (
-  <View className="flex-1 min-w-[45%] items-center rounded-xl bg-card px-3 py-3">
-    <Text className="text-xs text-muted">{label}</Text>
-    <Text className="mt-1 text-center text-sm font-semibold text-gray-800">{value}</Text>
+  <View style={{ flex: 1, minWidth: "45%", alignItems: "center", backgroundColor: "#f8f9fa", borderRadius: 12, paddingHorizontal: 12, paddingVertical: 12 }}>
+    <Text style={{ fontSize: 11, color: "#9ca3af" }}>{label}</Text>
+    <Text style={{ marginTop: 4, textAlign: "center", fontSize: 13, fontWeight: "600", color: "#1f2937" }}>{value}</Text>
   </View>
 );
 
@@ -95,7 +95,7 @@ const DiseaseSection = ({
 };
 
 const BreedResultScreen = ({ navigation, route }: Props) => {
-  const { result, imageUri, gradcamUri } = route.params;
+  const { result, imageUri, gradcamUri, isGuest = false } = route.params;
   const [breedDetail, setBreedDetail] = useState<BreedDetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const { setBreed } = useBreed();
@@ -105,20 +105,20 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
 
     setBreed(result.breed_id, result.breed_name_ko);
 
-    // 강아지 프로필 품종 자동 저장 (없으면 생성)
-    updateMyDog({ breed_id: result.breed_id }).catch(() => {
-      createMyDog({ name: "내 강아지", breed_id: result.breed_id! }).catch(() => {});
-    });
-
-    // 분석 히스토리 저장 (이미지 포함)
-    saveAnalysis({
-      breed_id: result.breed_id,
-      breed_name_ko: result.breed_name_ko,
-      breed_name_en: result.breed_name_en,
-      confidence: result.confidence,
-      is_mixed_breed: result.confidence < 0.5,
-      imageUri: imageUri,
-    }).catch(() => {});
+    // 비회원은 dog/analysis 저장 스킵
+    if (!isGuest) {
+      updateMyDog({ breed_id: result.breed_id }).catch(() => {
+        createMyDog({ name: "내 강아지", breed_id: result.breed_id! }).catch(() => {});
+      });
+      saveAnalysis({
+        breed_id: result.breed_id,
+        breed_name_ko: result.breed_name_ko,
+        breed_name_en: result.breed_name_en,
+        confidence: result.confidence,
+        is_mixed_breed: result.confidence < 0.5,
+        imageUri: imageUri,
+      }).catch(() => {});
+    }
 
     setLoading(true);
     getBreed(result.breed_id)
@@ -264,22 +264,33 @@ const BreedResultScreen = ({ navigation, route }: Props) => {
         gap: 8, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#f3f4f6",
       }}>
         {result.breed_id && (
-          <Pressable
-            style={{ backgroundColor: "#4361ee", borderRadius: 14, paddingVertical: 14 }}
-            onPress={() => navigation.navigate("Recommendation", {
-              breedId: result.breed_id!,
-              breedNameKo: result.breed_name_ko,
-              imageUri,
-            })}
-          >
-            <Text style={{ textAlign: "center", fontSize: 15, fontWeight: "700", color: "#fff" }}>
-              맞춤 추천 보기
-            </Text>
-          </Pressable>
+          isGuest ? (
+            // 비회원: 로그인 유도 버튼
+            <Pressable
+              style={{ backgroundColor: "#4361ee", borderRadius: 14, paddingVertical: 14 }}
+              onPress={() => navigation.navigate("Login")}
+            >
+              <Text style={{ textAlign: "center", fontSize: 15, fontWeight: "700", color: "#fff" }}>
+                회원가입하고 맞춤 추천 이용하기 →
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={{ backgroundColor: "#4361ee", borderRadius: 14, paddingVertical: 14 }}
+              onPress={() => navigation.navigate("Recommendation", {
+                breedId: result.breed_id!,
+                breedNameKo: result.breed_name_ko,
+              })}
+            >
+              <Text style={{ textAlign: "center", fontSize: 15, fontWeight: "700", color: "#fff" }}>
+                맞춤 추천 보기
+              </Text>
+            </Pressable>
+          )
         )}
         <Pressable
           style={{ backgroundColor: "#f3f4f6", borderRadius: 14, paddingVertical: 12 }}
-          onPress={() => navigation.reset({ index: 0, routes: [{ name: "Upload" }] })}
+          onPress={() => navigation.navigate(isGuest ? "GuestUpload" : "Upload")}
         >
           <Text style={{ textAlign: "center", fontSize: 13, fontWeight: "600", color: "#6b7280" }}>
             다른 강아지 분석하기
