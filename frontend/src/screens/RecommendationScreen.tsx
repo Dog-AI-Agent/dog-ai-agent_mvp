@@ -27,6 +27,7 @@ import type { RootStackParamList } from "../navigation/RootStack";
 import {
   getRecommendations,
   getRecommendationSummary,
+  getRecommendationSummaryStream,
 } from "../api/recommendations";
 import { useBreed } from "../context/BreedContext";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -192,7 +193,9 @@ const FoodCardItem = ({
                   paddingVertical: 3,
                 }}
               >
-                <Text style={{ fontSize: 11, color: "#475569", fontWeight: "600" }}>
+                <Text
+                  style={{ fontSize: 11, color: "#475569", fontWeight: "600" }}
+                >
                   ⏱ {food.cook_time_min}분
                 </Text>
               </View>
@@ -405,25 +408,29 @@ const RecipeCardItem = ({
           {/* 2줄: 예상 병명 태그 */}
           {recipe.target_diseases && recipe.target_diseases.length > 0 && (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
-            {recipe.target_diseases.map((d, i) => (
-              <View
-                key={i}
-                style={{
-                  backgroundColor: "#fff1f2",
-                  borderRadius: 20,
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderWidth: 1,
-                  borderColor: "#fecdd3",
-                }}
-              >
-                <Text
-                  style={{ fontSize: 11, color: "#e11d48", fontWeight: "600" }}
+              {recipe.target_diseases.map((d, i) => (
+                <View
+                  key={i}
+                  style={{
+                    backgroundColor: "#fff1f2",
+                    borderRadius: 20,
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderWidth: 1,
+                    borderColor: "#fecdd3",
+                  }}
                 >
-                  {d}
-                </Text>
-              </View>
-            ))}
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: "#e11d48",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {d}
+                  </Text>
+                </View>
+              ))}
             </View>
           )}
         </View>
@@ -456,10 +463,11 @@ const RecipeCardItem = ({
   );
 };
 
-// ── AI 추천 이유 (lazy 로딩 - 펼칠 때만 fetch) ──
+// ── AI 추천 이유 (lazy 로딩 - 펼칠 때만 스트리밍 fetch) ──
 const CollapsibleSummary = ({ breedId }: { breedId: string }) => {
   const [expanded, setExpanded] = useState(false);
-  const [summary, setSummary] = useState<string | null>(null);
+  const [streamingText, setStreamingText] = useState("");
+  const [finalSummary, setFinalSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
 
@@ -470,15 +478,27 @@ const CollapsibleSummary = ({ breedId }: { breedId: string }) => {
     if (next && !fetched) {
       setFetched(true);
       setSummaryLoading(true);
-      getRecommendationSummary(breedId)
-        .then((res) => setSummary(res.summary))
-        .catch(() => setSummary("AI 요약을 불러오지 못했습니다."))
-        .finally(() => setSummaryLoading(false));
+      getRecommendationSummaryStream(
+        breedId,
+        (token) => {
+          setSummaryLoading(false);
+          setStreamingText((prev) => prev + token);
+        },
+        (summary) => {
+          setFinalSummary(summary);
+          setSummaryLoading(false);
+        },
+        () => {
+          setSummaryLoading(false);
+          setStreamingText((prev) => prev || "AI 요약을 불러오지 못했습니다.");
+        },
+      );
     }
   };
 
-  const plainText = summary
-    ? extractReasonOnly(summary)
+  const displayText = finalSummary ?? streamingText;
+  const plainText = displayText
+    ? extractReasonOnly(displayText)
         .replace(/^#{1,4}\s*/gm, "")
         .replace(/\*\*/g, "")
         .replace(/^[-•*]\s*/gm, "")

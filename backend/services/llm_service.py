@@ -2,12 +2,17 @@
 LLM Service — OpenAI GPT-4o-mini few-shot recommendation summary
 """
 
+import asyncio
 import json
+import logging
 import os
+from collections.abc import AsyncGenerator
 from pathlib import Path
 from openai import OpenAI
 
 from backend.config import OPENAI_API_KEY
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FEW_SHOT_PATH = BASE_DIR / "ai-service" / "LLM" / "few_shot_samples.json"
@@ -167,6 +172,74 @@ async def generate_summary(
         return response.choices[0].message.content or fallback
     except Exception:
         return fallback
+
+
+async def stream_summary(
+    breed_name_ko: str,
+    breed_size: str | None,
+    disease_names: list[str],
+    recipe_titles: list[str] | None = None,
+) -> AsyncGenerator[str, None]:
+    """스트리밍 방식으로 추천 요약을 생성하는 async generator."""
+    fallback = f"{breed_name_ko}의 건강을 위한 맞춤 레시피를 추천합니다."
+
+    if not OPENAI_API_KEY:
+        yield fallback
+        return
+
+    size_info = ""
+    if breed_size:
+        serving = SERVING_SIZE.get(breed_size, "")
+        size_info = f" ({breed_size}, 1회 급여량 {serving})" if serving else f" ({breed_size})"
+
+    disease_str = ", ".join(disease_names) if disease_names else "알려진 유전 질병 없음"
+
+    user_query = f"우리 강아지 견종은 {breed_name_ko}{size_info}입니다. "
+    if disease_names:
+        user_query += f"주요 질병 위험: {disease_str}. "
+        if recipe_titles:
+            translated = [_translate_food(t) for t in recipe_titles[:5]]
+            user_query += f"선택 가능한 레시피: {', '.join(translated)}. "
+        user_query += "어떤 음식을 추천하시나요? 추천 이유, 재료, 만드는 법, 급여량도 알려주세요."
+    else:
+        user_query += "어떤 질병 위험이 있고, 어떤 음식을 추천하시나요?"
+
+    queue: asyncio.Queue[str | None] = asyncio.Queue()
+    loop = asyncio.get_event_loop()
+
+    def _run_stream():
+        try:
+            client = OpenAI(api_key=OPENAI_API_KEY)
+            system_prompt = _build_system_prompt()
+            few_shot = _build_few_shot_messages()
+
+            msgs = [{"role": "system", "content": system_prompt}]
+            msgs.extend(few_shot)
+            msgs.append({"role": "user", "content": user_query})
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=msgs,
+                temperature=0.7,
+                max_tokens=1024,
+                stream=True,
+            )
+            for chunk in response:
+                token = chunk.choices[0].delta.content if chunk.choices[0].delta.content else ""
+                if token:
+                    loop.call_soon_threadsafe(queue.put_nowait, token)
+        except Exception:
+            logger.exception("Summary streaming LLM call failed")
+        finally:
+            loop.call_soon_threadsafe(queue.put_nowait, None)
+
+    loop.run_in_executor(None, _run_stream)
+
+    while True:
+        token = await queue.get()
+        if token is None:
+            break
+        yield token
 
 
 async def generate_recipe_summary(
