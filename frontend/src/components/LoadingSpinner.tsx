@@ -111,7 +111,15 @@ const LoadingSpinner = () => {
               resizeMode="cover"
             />
           ) : (
-            <Text style={{ fontSize: 36, lineHeight: DOG_SIZE }}>🐕</Text>
+            <Text
+              style={{
+                fontSize: 36,
+                lineHeight: DOG_SIZE,
+                transform: [{ scaleX: -1 }],
+              }}
+            >
+              🐕
+            </Text>
           )}
         </Animated.View>
 
