@@ -219,13 +219,13 @@ EXPO_PUBLIC_API_URL=
 
 ## 팀 구성
 
-| 이름            | 역할                        |
-| --------------- | --------------------         |
-| 김재현          | Project Leader, AI Service  |
-| 최동원          | Backend, Release            |
-| 이민혜          | Frontend, Backend           |
-| 송진우          | Frontend, Backend           |
-| 장승우          | AI Service, Data Analysis   |
+| 이름   | 역할                       |
+| ------ | -------------------------- |
+| 김재현 | Project Leader, AI Service |
+| 최동원 | Backend, Release           |
+| 이민혜 | Frontend, Backend          |
+| 송진우 | Frontend, Backend          |
+| 장승우 | AI Service, Data Analysis  |
 
 ---
 

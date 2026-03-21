@@ -11,7 +11,11 @@ const buildFormData = (imageUri: string): FormData => {
   if (Platform.OS === "web") {
     // Web: Blob은 호출 시점에 비동기로 처리해야 하므로 별도 처리
   } else {
-    formData.append("file", { uri: imageUri, name: filename, type } as unknown as Blob);
+    formData.append("file", {
+      uri: imageUri,
+      name: filename,
+      type,
+    } as unknown as Blob);
   }
   return formData;
 };
@@ -29,10 +33,19 @@ export const recognizeBreed = async (
     const blob = await res.blob();
     formData.append("file", blob, filename);
   } else {
-    formData.append("file", { uri: imageUri, name: filename, type } as unknown as Blob);
+    formData.append("file", {
+      uri: imageUri,
+      name: filename,
+      type,
+    } as unknown as Blob);
   }
 
-  return post<BreedRecognitionResponse>("/ai/breed-recognition", formData, undefined, 60000);
+  return post<BreedRecognitionResponse>(
+    "/ai/breed-recognition",
+    formData,
+    undefined,
+    60000,
+  );
 };
 
 export const fetchGradcam = async (imageUri: string): Promise<string> => {
@@ -46,9 +59,18 @@ export const fetchGradcam = async (imageUri: string): Promise<string> => {
     const blob = await res.blob();
     formData.append("file", blob, filename);
   } else {
-    formData.append("file", { uri: imageUri, name: filename, type } as unknown as Blob);
+    formData.append("file", {
+      uri: imageUri,
+      name: filename,
+      type,
+    } as unknown as Blob);
   }
 
-  const res = await post<{ gradcam_image_b64: string }>("/ai/gradcam", formData, undefined, 90000);
+  const res = await post<{ gradcam_image_b64: string }>(
+    "/ai/gradcam",
+    formData,
+    undefined,
+    90000,
+  );
   return `data:image/png;base64,${res.gradcam_image_b64}`;
 };

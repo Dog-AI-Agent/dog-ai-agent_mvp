@@ -23,7 +23,10 @@ const WebFloatingButton = ({ onPress }: { onPress: () => void }) => {
       // webInner 기준 오른쪽 하단
       const containerW = Math.min(window.innerWidth, 480);
       setPos({ x: containerW - BUTTON_SIZE - 16, y: window.innerHeight - 160 });
-      startPos.current = { x: containerW - BUTTON_SIZE - 16, y: window.innerHeight - 160 };
+      startPos.current = {
+        x: containerW - BUTTON_SIZE - 16,
+        y: window.innerHeight - 160,
+      };
     }
   }, []);
 
@@ -55,8 +58,17 @@ const WebFloatingButton = ({ onPress }: { onPress: () => void }) => {
       if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved.current = true;
       const containerW = Math.min(window.innerWidth, 480);
       setPos({
-        x: Math.max(0, Math.min(containerW - BUTTON_SIZE, startPos.current.x + dx)),
-        y: Math.max(60, Math.min(window.innerHeight - BUTTON_SIZE - 60, startPos.current.y + dy)),
+        x: Math.max(
+          0,
+          Math.min(containerW - BUTTON_SIZE, startPos.current.x + dx),
+        ),
+        y: Math.max(
+          60,
+          Math.min(
+            window.innerHeight - BUTTON_SIZE - 60,
+            startPos.current.y + dy,
+          ),
+        ),
       });
     };
 
@@ -122,8 +134,11 @@ const NativeFloatingButton = ({ onPress }: { onPress: () => void }) => {
         isDragging.current = false;
       },
       onPanResponderMove: (_, gs) => {
-        if (Math.abs(gs.dx) > 5 || Math.abs(gs.dy) > 5) isDragging.current = true;
-        Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false })(_, gs);
+        if (Math.abs(gs.dx) > 5 || Math.abs(gs.dy) > 5)
+          isDragging.current = true;
+        Animated.event([null, { dx: pan.x, dy: pan.y }], {
+          useNativeDriver: false,
+        })(_, gs);
       },
       onPanResponderRelease: (_, gs) => {
         pan.flattenOffset();
@@ -133,7 +148,7 @@ const NativeFloatingButton = ({ onPress }: { onPress: () => void }) => {
         pan.setValue({ x: newX, y: newY });
         if (!isDragging.current) onPress();
       },
-    })
+    }),
   ).current;
 
   return (
@@ -141,14 +156,21 @@ const NativeFloatingButton = ({ onPress }: { onPress: () => void }) => {
       style={{ position: "absolute", left: pan.x, top: pan.y, zIndex: 9999 }}
       {...panResponder.panHandlers}
     >
-      <View style={{
-        width: BUTTON_SIZE, height: BUTTON_SIZE,
-        borderRadius: BUTTON_SIZE / 2,
-        backgroundColor: "#4361ee",
-        alignItems: "center", justifyContent: "center",
-        shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3, shadowRadius: 8, elevation: 10,
-      }}>
+      <View
+        style={{
+          width: BUTTON_SIZE,
+          height: BUTTON_SIZE,
+          borderRadius: BUTTON_SIZE / 2,
+          backgroundColor: "#4361ee",
+          alignItems: "center",
+          justifyContent: "center",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 10,
+        }}
+      >
         <Text style={{ fontSize: 26 }}>🤖</Text>
       </View>
     </Animated.View>
@@ -157,7 +179,8 @@ const NativeFloatingButton = ({ onPress }: { onPress: () => void }) => {
 
 // ── 메인 ──
 const FloatingChatButton = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { breedId, breedNameKo } = useBreed();
 
   const handlePress = () => {
