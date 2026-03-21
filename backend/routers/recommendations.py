@@ -16,9 +16,10 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any
 
+import time
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from postgrest.exceptions import APIError as PostgrestAPIError
 from pydantic import BaseModel
 
@@ -30,7 +31,25 @@ from backend.models.schemas import (
     RecipeCard,
     RecommendationResponse,
 )
-from backend.services.llm_service import generate_summary, stream_summary
+from backend.services.llm_service import generate_summary, generate_summary_stream
+
+# ── summary 인메모리 캐시 (breed_id → summary) ──
+_summary_cache: dict[str, str] = {}
+_summary_cache_ts: dict[str, float] = {}
+_SUMMARY_CACHE_TTL = 3600
+_summary_locks: dict[str, asyncio.Lock] = {}
+
+
+def _scache_get(key: str) -> str | None:
+    ts = _summary_cache_ts.get(key)
+    if ts and time.time() - ts < _SUMMARY_CACHE_TTL:
+        return _summary_cache.get(key)
+    return None
+
+
+def _scache_set(key: str, val: str):
+    _summary_cache[key] = val
+    _summary_cache_ts[key] = time.time()
 
 logger = logging.getLogger(__name__)
 
@@ -447,6 +466,57 @@ class SummaryResponse(BaseModel):
     summary: str
 
 
+@router.get("/summary/stream")
+async def stream_summary(
+    breed_id: str = Query(..., min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$"),
+):
+    """수상 요약 SSE 스트리밍 - 캐시 히트 시 JSON, 미스 시 SSE"""
+    t0 = time.perf_counter()
+
+    # 캐시 히트 → 즉시 JSON
+    cached = _scache_get(breed_id)
+    if cached:
+        return JSONResponse({"status": "complete", "summary": cached, "cached": True})
+
+    data = await run_in_threadpool(_sync_get_recommendations, breed_id)
+
+    if breed_id not in _summary_locks:
+        _summary_locks[breed_id] = asyncio.Lock()
+
+    async def sse_gen():
+        async with _summary_locks[breed_id]:
+            cached2 = _scache_get(breed_id)
+            if cached2:
+                escaped = cached2.replace("\n", "\\n")
+                yield f"data: {escaped}\n\n"
+                yield "data: [DONE]\n\n"
+                return
+
+            chunks: list[str] = []
+            first = True
+            async for token in generate_summary_stream(
+                breed_name_ko=data["breed_name_ko"],
+                breed_size=data["breed"].get("size_category"),
+                disease_names=data["disease_names"],
+                recipe_titles=[r.title for r in data["recipes"][:5]],
+            ):
+                if first:
+                    logger.info(f"[TIMING] summary first token {(time.perf_counter()-t0)*1000:.0f}ms")
+                    first = False
+                chunks.append(token)
+                yield f"data: {token.replace(chr(10), chr(92)+'n')}\n\n"
+
+            full = "".join(chunks)
+            _scache_set(breed_id, full)
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        sse_gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 @router.get("/summary")
 async def get_summary(
     breed_id: str = Query(
@@ -483,8 +553,8 @@ async def get_summary(
     return SummaryResponse(summary=summary)
 
 
-@router.get("/summary/stream")
-async def get_summary_stream(
+# origin/dev NDJSON 방식 제거 - SSE /summary/stream 엔드포인트로 통일
+async def _legacy_ndjson_stream_REMOVED(
     breed_id: str = Query(
         ...,
         description="Breed ID (required)",

@@ -1,5 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Request
 import httpx
+import time
+from collections import defaultdict
 
 from backend.config import AI_SERVER_URL
 from backend.database import get_supabase
@@ -7,6 +9,20 @@ from backend.utils.image_validation import validate_image
 from backend.models.schemas import BreedRecognitionResponse, TopKPrediction, ImageMetadata
 
 router = APIRouter(prefix="/ai", tags=["AI"])
+
+# ── 비회원 IP 기반 횟수 제한 (in-memory, 하루 3회) ──
+_guest_requests: dict[str, list[float]] = defaultdict(list)
+_GUEST_LIMIT = 3
+_GUEST_WINDOW = 86400  # 24시간
+
+
+def _check_guest_rate_limit(ip: str) -> bool:
+    now = time.time()
+    _guest_requests[ip] = [t for t in _guest_requests[ip] if now - t < _GUEST_WINDOW]
+    if len(_guest_requests[ip]) >= _GUEST_LIMIT:
+        return False
+    _guest_requests[ip].append(now)
+    return True
 
 
 @router.post("/gradcam")
@@ -29,11 +45,10 @@ async def gradcam(file: UploadFile = File(...)):
     return resp.json()
 
 
-@router.post("/breed-recognition", response_model=BreedRecognitionResponse)
-async def breed_recognition(file: UploadFile = File(...)):
+async def _do_breed_recognition(file: UploadFile) -> BreedRecognitionResponse:
+    """공통 품종 인식 로직"""
     contents, metadata = await validate_image(file)
 
-    # Call AI server
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
@@ -53,13 +68,11 @@ async def breed_recognition(file: UploadFile = File(...)):
     if not ai_result.get("is_dog"):
         raise HTTPException(status_code=422, detail="No dog detected in the image.")
 
-    # Look up breed_id from DB
     breed_model = ai_result["breed_en"].lower().replace(" ", "_")
     db = get_supabase()
     breed_row = db.table("breeds").select("id").eq("breed_model", breed_model).execute()
     breed_id = breed_row.data[0]["id"] if breed_row.data else None
 
-    # top3 품종명 한글 변환
     top3_breeds = ai_result.get("top3", [])
     breed_ko_map = {}
     if top3_breeds:
@@ -88,3 +101,20 @@ async def breed_recognition(file: UploadFile = File(...)):
         image_metadata=ImageMetadata(**metadata),
         model_version="model_1.h5",
     )
+
+
+@router.post("/breed-recognition-guest", response_model=BreedRecognitionResponse)
+async def breed_recognition_guest(request: Request, file: UploadFile = File(...)):
+    """비회원용 품종 인식 - IP 기반 하루 3회 제한"""
+    ip = request.client.host if request.client else "unknown"
+    if not _check_guest_rate_limit(ip):
+        raise HTTPException(
+            status_code=429,
+            detail="하루 3회 무료 분석 횟수를 초과했습니다. 로그인 후 이용해주세요."
+        )
+    return await _do_breed_recognition(file)
+
+
+@router.post("/breed-recognition", response_model=BreedRecognitionResponse)
+async def breed_recognition(file: UploadFile = File(...)):
+    return await _do_breed_recognition(file)

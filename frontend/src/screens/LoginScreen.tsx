@@ -237,12 +237,27 @@ const LoginScreen = ({ navigation }: Props) => {
           onPress={() => handleSocialLogin("kakao")}
         />
 
-        <View className="mt-6 flex-row items-center justify-center gap-1">
-          <Text className="text-sm text-muted">계정이 없으신가요?</Text>
+        <View style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+          <Text style={{ fontSize: 13, color: "#6b7280" }}>계정이 없으신가요?</Text>
           <Pressable onPress={() => navigation.navigate("Signup")}>
-            <Text className="text-sm font-semibold text-primary">회원가입</Text>
+            <Text style={{ fontSize: 13, fontWeight: "700", color: "#4361ee" }}>회원가입</Text>
           </Pressable>
         </View>
+
+        {/* 비회원 체험 */}
+        <Pressable
+          style={{
+            marginTop: 12,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: "#e5e7eb",
+            paddingVertical: 12,
+            alignItems: "center",
+          }}
+          onPress={() => navigation.navigate("GuestUpload")}
+        >
+          <Text style={{ fontSize: 13, color: "#6b7280" }}>🐾 로그인 없이 체험하기 (하루 3회)</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );

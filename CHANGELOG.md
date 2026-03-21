@@ -1,5 +1,53 @@
 # CHANGELOG
 
+## v2.8.0 — 2026-03-21
+
+### 비회원 기능 + AI 스트리밍 + 속도 최적화
+
+#### 신규 기능
+- `GuestUploadScreen`: 로그인 없이 사진 분석 (IP 기반 하루 3회 제한)
+- `POST /ai/breed-recognition-guest`: 비회원 품종 인식 엔드포인트
+- 로그인 화면 하단 "로그인 없이 체험하기" 버튼 추가
+
+#### AI 스트리밍 전환
+- `GET /recipes/{id}/stream`: 레시피 요약 SSE 스트리밍 엔드포인트
+- `GET /recommendations/summary/stream`: 추천 이유 SSE 스트리밍 엔드포인트
+- 프론트 `StreamingAiGuide`: 진입 즉시 프리패치 → 펼칠 때 즉시 표시
+- 프론트 `CollapsibleSummary`: lazy → 스트리밍 프리패치 전환
+
+#### AI 속도 최적화 (Debate Chain)
+- `AsyncOpenAI` 싱글톤 (connection pool 재사용)
+- few-shot JSON 파일 로드 제거 → system prompt 인라인 통합
+- system prompt 100% 고정 → OpenAI KV캐싱 극대화
+- 인메모리 캐시 (1시간 TTL): 두 번째 요청부터 TTFT=0
+- SSE `\n\n` 기준 올바른 이벤트 파싱
+- 동시 요청 dedupe (`asyncio.Lock`)
+- `max_tokens` 1024→800, `temperature` 0.7→0.3
+
+#### 버그 수정
+- 비회원 BreedResult에서 `PUT /users/me/dog` 401 오류 수정 (`isGuest` 체크)
+- 비회원 "맞춤 추천 보기" navigate 실패 → 로그인 유도 버튼으로 교체
+- `GuestUploadScreen` GradCAM 누락 수정 (`Promise.all` 병렬 호출)
+- `RecipeDetailScreen` `className` 제거 → 모바일 호환
+- `ChatScreen` `className` 제거 + `UserHeader` 헤더 제거 → 모바일 UI 깨짐 수정
+- 챗봇 플로팅 버튼 모바일 터치/드래그 지원
+- 로고 반응형 `alignItems: center` 제거
+- LLM 재료 분량 "적당량" 출력 방지 (프롬프트 강화)
+
+#### Debate Chain MCP 개선
+- `debate_start` → non-blocking (즉시 debate_id 반환)
+- `debate_result` 툴 신규 추가
+- `pair2/3_start` → non-blocking
+- `pair_result` 툴 신규 추가
+
+#### 환경/배포
+- `requirements.txt`: `bcrypt==4.0.1` 고정, `pydantic[email]` 추가
+- `vercel.json`: `installCommand` 추가로 빌드 실패 수정
+- `NGROK_GUIDE.md` 추가 (팀장 백엔드 서버 설정 가이드)
+- `DEV_GUIDE.md` 최초 환경설정 섹션 추가
+
+---
+
 ## v2.7.0 — 2026-03-20
 
 > **Debate Chain pair2 모드** — Claude(Part1) + Codex(Part2) 병렬 생성
