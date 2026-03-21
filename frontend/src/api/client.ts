@@ -87,5 +87,61 @@ export const post = <T>(path: string, body: BodyInit, headers?: Record<string, s
 export const put = <T>(path: string, body: BodyInit, headers?: Record<string, string>): Promise<T> =>
   request<T>(path, { method: "PUT", body, headers });
 
+export const patch = <T>(path: string, body?: BodyInit, headers?: Record<string, string>): Promise<T> =>
+  request<T>(path, { method: "PATCH", body, headers });
+
 export const del = <T>(path: string, body?: BodyInit, headers?: Record<string, string>): Promise<T> =>
   request<T>(path, { method: "DELETE", body, headers });
+
+export const fetchStream = async (
+  path: string,
+  options?: {
+    method?: string;
+    body?: BodyInit;
+    headers?: Record<string, string>;
+    params?: Record<string, string | number | undefined>;
+    timeout?: number;
+  },
+): Promise<Response> => {
+  const {
+    method = "GET",
+    body,
+    headers = {},
+    params,
+    timeout = 60000,
+  } = options ?? {};
+  const url = buildUrl(path, params);
+
+  const token = getAuthToken();
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { "ngrok-skip-browser-warning": "true", ...authHeaders, ...headers },
+      body,
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      clearTimeout(timer);
+      const errorBody = await res.json().catch(() => ({}));
+      const err = new Error(errorBody.detail || `HTTP ${res.status}`) as Error & {
+        status: number;
+        detail?: string;
+      };
+      err.status = res.status;
+      err.detail = errorBody.detail;
+      throw err;
+    }
+
+    // timer는 스트림 소비 중에도 유지 → 호출자가 abort 처리
+    return res;
+  } catch (e) {
+    clearTimeout(timer);
+    throw e;
+  }
+};

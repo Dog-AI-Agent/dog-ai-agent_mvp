@@ -109,7 +109,7 @@ _RECIPE_SYSTEM_PROMPT = """\
 사용자가 레시피 정보를 제공하면, 위 형식으로 영양 요약을 작성하세요.\
 """
 
-# ── 추천 요약용 System Prompt (RecommendationScreen lazy loading) ──
+# ── 추천 요약용 System Prompt ──
 _SUMMARY_SYSTEM_PROMPT = """\
 당신은 반려견 영양 상담 전문 수의사입니다.
 견종과 질병 위험을 기반으로 맞춤 식단 추천 이유를 한국어로 작성합니다.
@@ -146,7 +146,7 @@ def _build_recipe_user_message(
     )
 
 
-# ── 스트리밍 (SSE용) ──
+# ── 레시피 요약 스트리밍 (SSE용) ──
 async def generate_recipe_summary_stream(
     recipe_title_ko: str,
     ingredient_names: list[str],
@@ -187,7 +187,7 @@ async def generate_recipe_summary_stream(
         yield "\n\n(AI 응답 생성 중 오류가 발생했습니다.)"
 
 
-# ── 논스트리밍 (기존 /recipes/{id} 엔드포인트 호환) ──
+# ── 레시피 요약 비스트리밍 ──
 async def generate_recipe_summary(
     recipe_title_ko: str,
     ingredient_names: list[str],
@@ -236,7 +236,7 @@ async def generate_summary_stream(
         yield f"{breed_name_ko}의 건강을 위한 맞춤 레시피를 추천합니다."
         return
 
-    size_ko = {"small": "소형견", "medium": "중형견", "large": "대형견", "giant": "초대형곬"}.get(breed_size or "", "")
+    size_ko = {"small": "소형견", "medium": "중형견", "large": "대형견", "giant": "초대형견"}.get(breed_size or "", "")
     disease_str = ", ".join(disease_names) if disease_names else "알려진 유전 질병 없음"
     recipe_str = ", ".join(recipe_titles[:5]) if recipe_titles else ""
 
@@ -271,7 +271,7 @@ async def generate_summary_stream(
         yield f"{breed_name_ko}의 건강을 위한 맞춤 레시피를 추천합니다."
 
 
-# ── 추천 요약 (비스트리밍, 호환용) ──
+# ── 추천 요약 비스트리밍 ──
 async def generate_summary(
     breed_name_ko: str,
     breed_size: str | None,

@@ -8,6 +8,7 @@ Debate Chain 3-AI 리뷰 결과 적용 (8.0/10 수렴)
 - LLM 타임아웃 처리
 """
 import asyncio
+import json
 import logging
 import re
 from collections import defaultdict
@@ -550,3 +551,44 @@ async def get_summary(
             summary = f"{data['breed_name_ko']}에 대한 맞춤 건강 정보입니다."
 
     return SummaryResponse(summary=summary)
+
+
+# (origin/dev NDJSON 스트리밍 제거 - SSE 방식으로 통일)
+# @router.get("/summary/stream")
+async def get_summary_stream_REMOVED(
+    breed_id: str = Query(
+        ...,
+        description="Breed ID (required)",
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-zA-Z0-9_-]+$",
+    ),
+):
+    """LLM summary를 NDJSON 스트리밍으로 반환"""
+    data = await run_in_threadpool(_sync_get_recommendations, breed_id)
+    recipes = data["recipes"]
+
+    async def _generate():
+        full_content = ""
+        try:
+            async for token in stream_summary(
+                breed_name_ko=data["breed_name_ko"],
+                breed_size=data["breed"].get("size_category"),
+                disease_names=data["disease_names"],
+                recipe_titles=[r.title for r in recipes[:5]],
+            ):
+                full_content += token
+                yield json.dumps({"token": token}, ensure_ascii=False) + "\n"
+        except Exception:
+            logger.exception("Streaming summary failed for breed %s", data["breed_name_ko"])
+
+        if not full_content:
+            full_content = f"{data['breed_name_ko']}에 대한 맞춤 건강 정보입니다."
+            yield json.dumps({"token": full_content}, ensure_ascii=False) + "\n"
+
+        yield json.dumps({
+            "done": True,
+            "summary": full_content,
+        }, ensure_ascii=False) + "\n"
+
+    return StreamingResponse(_generate(), media_type="application/x-ndjson")

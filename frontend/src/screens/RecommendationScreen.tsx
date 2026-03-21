@@ -27,6 +27,7 @@ import type { RootStackParamList } from "../navigation/RootStack";
 import {
   getRecommendations,
   getRecommendationSummary,
+  getRecommendationSummaryStream,
 } from "../api/recommendations";
 import { useBreed } from "../context/BreedContext";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -192,7 +193,9 @@ const FoodCardItem = ({
                   paddingVertical: 3,
                 }}
               >
-                <Text style={{ fontSize: 11, color: "#475569", fontWeight: "600" }}>
+                <Text
+                  style={{ fontSize: 11, color: "#475569", fontWeight: "600" }}
+                >
                   ⏱ {food.cook_time_min}분
                 </Text>
               </View>
@@ -405,25 +408,29 @@ const RecipeCardItem = ({
           {/* 2줄: 예상 병명 태그 */}
           {recipe.target_diseases && recipe.target_diseases.length > 0 && (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
-            {recipe.target_diseases.map((d, i) => (
-              <View
-                key={i}
-                style={{
-                  backgroundColor: "#fff1f2",
-                  borderRadius: 20,
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderWidth: 1,
-                  borderColor: "#fecdd3",
-                }}
-              >
-                <Text
-                  style={{ fontSize: 11, color: "#e11d48", fontWeight: "600" }}
+              {recipe.target_diseases.map((d, i) => (
+                <View
+                  key={i}
+                  style={{
+                    backgroundColor: "#fff1f2",
+                    borderRadius: 20,
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderWidth: 1,
+                    borderColor: "#fecdd3",
+                  }}
                 >
-                  {d}
-                </Text>
-              </View>
-            ))}
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: "#e11d48",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {d}
+                  </Text>
+                </View>
+              ))}
             </View>
           )}
         </View>
@@ -466,42 +473,28 @@ const CollapsibleSummary = ({ breedId }: { breedId: string }) => {
   const API_BASE = BASE_URL.replace(/\/api\/v1$/, "");
   const url = `${API_BASE}/api/v1/recommendations/summary/stream?breed_id=${breedId}`;
 
-  // 화면 진입 즉시 프리패치
   useEffect(() => {
     let cancelled = false;
     setStreaming(true);
-
     const run = async () => {
       try {
-        const res = await fetch(url, {
-          headers: { "ngrok-skip-browser-warning": "true" },
-        });
+        const res = await fetch(url, { headers: { "ngrok-skip-browser-warning": "true" } });
         const contentType = res.headers.get("content-type") || "";
-
-        // 캐시 히트: JSON 즉시 반환
         if (contentType.includes("application/json")) {
           const data = await res.json();
-          if (!cancelled) {
-            setStreamText(data.summary || "");
-            setStreaming(false);
-          }
+          if (!cancelled) { setStreamText(data.summary || ""); setStreaming(false); }
           return;
         }
-
-        // SSE 스트리밍
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
         if (!reader) return;
-
         let sseBuffer = "";
         while (true) {
           const { done, value } = await reader.read();
           if (done || cancelled) break;
           sseBuffer += decoder.decode(value, { stream: true });
-
           const events = sseBuffer.split("\n\n");
           sseBuffer = events.pop() ?? "";
-
           for (const event of events) {
             const line = event.trim();
             if (!line.startsWith("data: ")) continue;
@@ -516,7 +509,6 @@ const CollapsibleSummary = ({ breedId }: { breedId: string }) => {
         if (!cancelled) setStreaming(false);
       }
     };
-
     run();
     return () => { cancelled = true; };
   }, [url]);

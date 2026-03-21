@@ -1,11 +1,13 @@
 """
 Chat API — 품종 기반 RAG 챗봇
 """
+import json
 import logging
 import re
 
 from fastapi import APIRouter, HTTPException
 from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import StreamingResponse
 
 from backend.database import get_supabase
 from backend.models.schemas import (
@@ -15,7 +17,7 @@ from backend.models.schemas import (
     ChatMessageResponse,
     ChatHistoryResponse,
 )
-from backend.services.chat_service import get_chat_response
+from backend.services.chat_service import get_chat_response, stream_chat_response
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -108,6 +110,70 @@ async def send_message(session_id: str, body: ChatMessageRequest):
         content=assistant_content,
         created_at=msg.get("created_at", ""),
     )
+
+
+# ── 메시지 스트리밍 전송 (NDJSON) ──
+
+@router.post("/sessions/{session_id}/messages/stream")
+async def send_message_stream(session_id: str, body: ChatMessageRequest):
+    if not body.content.strip():
+        raise HTTPException(status_code=400, detail="메시지가 비어있습니다.")
+
+    sb = get_supabase()
+
+    session = await run_in_threadpool(
+        lambda: sb.table("chat_sessions")
+        .select("id, breed_id")
+        .eq("id", session_id)
+        .limit(1)
+        .execute()
+    )
+    if not session.data:
+        raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다.")
+
+    breed_id = session.data[0]["breed_id"]
+
+    history_result = await run_in_threadpool(
+        lambda: sb.table("chat_messages")
+        .select("role, content")
+        .eq("session_id", session_id)
+        .order("created_at")
+        .execute()
+    )
+    history = history_result.data or []
+
+    await run_in_threadpool(
+        lambda: sb.table("chat_messages")
+        .insert({"session_id": session_id, "role": "user", "content": body.content.strip()})
+        .execute()
+    )
+
+    async def _generate():
+        full_content = ""
+        try:
+            async for token in stream_chat_response(breed_id, body.content.strip(), history):
+                full_content += token
+                yield json.dumps({"token": token}, ensure_ascii=False) + "\n"
+        except Exception:
+            logger.exception("Streaming chat failed")
+
+        if not full_content:
+            full_content = "죄송합니다. 일시적으로 응답을 생성할 수 없습니다."
+            yield json.dumps({"token": full_content}, ensure_ascii=False) + "\n"
+
+        saved = await run_in_threadpool(
+            lambda: sb.table("chat_messages")
+            .insert({"session_id": session_id, "role": "assistant", "content": full_content})
+            .execute()
+        )
+        msg = saved.data[0] if saved.data else {}
+        yield json.dumps({
+            "done": True,
+            "message_id": msg.get("id", ""),
+            "content": full_content,
+        }, ensure_ascii=False) + "\n"
+
+    return StreamingResponse(_generate(), media_type="application/x-ndjson")
 
 
 # ── 대화 기록 조회 ──
