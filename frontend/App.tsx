@@ -9,8 +9,13 @@ import { BreedProvider } from "./src/context/BreedContext";
 import FloatingChatButton from "./src/components/FloatingChatButton";
 
 // AuthContext가 있으면 사용, 없으면 스킵
-let AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => <>{children}</>;
-let useAuth: () => { login?: (token: string, user: any) => void; isAuthenticated?: boolean } = () => ({});
+let AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <>{children}</>
+);
+let useAuth: () => {
+  login?: (token: string, user: any) => void;
+  isAuthenticated?: boolean;
+} = () => ({});
 try {
   const authModule = require("./src/context/AuthContext");
   AuthProvider = authModule.AuthProvider;

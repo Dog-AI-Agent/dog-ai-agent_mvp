@@ -9,7 +9,11 @@ import RecipeDetailScreen from "../screens/RecipeDetailScreen";
 import ChatScreen from "../screens/ChatScreen";
 import GuestUploadScreen from "../screens/GuestUploadScreen";
 import MyPageScreen from "../screens/MyPageScreen";
-import type { BreedRecognitionResponse } from "../types";
+import CommunityHomeScreen from "../screens/CommunityHomeScreen";
+import CommunityPostDetailScreen from "../screens/CommunityPostDetailScreen";
+import CommunityPostCreateScreen from "../screens/CommunityPostCreateScreen";
+import CommunityPostEditScreen from "../screens/CommunityPostEditScreen";
+import type { BreedRecognitionResponse, CommunityCategory } from "../types";
 
 export type RootStackParamList = {
   // Auth
@@ -34,6 +38,11 @@ export type RootStackParamList = {
   RecipeDetail: { recipeId: string; breedId?: string };
   Chat: { breedId: string; breedNameKo: string; sessionId?: string };
   MyPage: undefined;
+  // Community
+  CommunityHome: undefined;
+  CommunityPostDetail: { postId: string };
+  CommunityPostCreate: { category?: CommunityCategory };
+  CommunityPostEdit: { postId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -59,6 +68,19 @@ const RootStack = () => {
           <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="MyPage" component={MyPageScreen} />
+          <Stack.Screen name="CommunityHome" component={CommunityHomeScreen} />
+          <Stack.Screen
+            name="CommunityPostDetail"
+            component={CommunityPostDetailScreen}
+          />
+          <Stack.Screen
+            name="CommunityPostCreate"
+            component={CommunityPostCreateScreen}
+          />
+          <Stack.Screen
+            name="CommunityPostEdit"
+            component={CommunityPostEditScreen}
+          />
         </>
       ) : (
         <>

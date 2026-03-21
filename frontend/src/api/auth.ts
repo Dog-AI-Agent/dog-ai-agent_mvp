@@ -22,7 +22,11 @@ export interface LoginPayload {
 }
 
 export const signup = (payload: SignupPayload): Promise<TokenResponse> =>
-  post<TokenResponse>("/auth/signup", JSON.stringify(payload), { "Content-Type": "application/json" });
+  post<TokenResponse>("/auth/signup", JSON.stringify(payload), {
+    "Content-Type": "application/json",
+  });
 
 export const login = (payload: LoginPayload): Promise<TokenResponse> =>
-  post<TokenResponse>("/auth/login", JSON.stringify(payload), { "Content-Type": "application/json" });
+  post<TokenResponse>("/auth/login", JSON.stringify(payload), {
+    "Content-Type": "application/json",
+  });

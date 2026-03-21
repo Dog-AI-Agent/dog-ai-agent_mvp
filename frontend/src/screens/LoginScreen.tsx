@@ -97,7 +97,9 @@ const SocialButton = ({
     })}
   >
     {icon}
-    <Text style={{ color: textColor, fontSize: 15, fontWeight: "600" }}>{label}</Text>
+    <Text style={{ color: textColor, fontSize: 15, fontWeight: "600" }}>
+      {label}
+    </Text>
   </Pressable>
 );
 
@@ -145,7 +147,11 @@ const LoginScreen = ({ navigation }: Props) => {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 32 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 24,
+          paddingVertical: 32,
+        }}
         keyboardShouldPersistTaps="handled"
       >
         <View className="gap-4">
@@ -174,9 +180,7 @@ const LoginScreen = ({ navigation }: Props) => {
             />
           </View>
 
-          {error ? (
-            <Text className="text-sm text-red-500">{error}</Text>
-          ) : null}
+          {error ? <Text className="text-sm text-red-500">{error}</Text> : null}
 
           <Pressable
             className="mt-2 w-full rounded-xl bg-primary px-6 py-4 active:opacity-80"
@@ -186,13 +190,22 @@ const LoginScreen = ({ navigation }: Props) => {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text className="text-center text-base font-bold text-white">로그인</Text>
+              <Text className="text-center text-base font-bold text-white">
+                로그인
+              </Text>
             )}
           </Pressable>
         </View>
 
         {/* 구분선 */}
-        <View style={{ flexDirection: "row", alignItems: "center", marginVertical: 24, gap: 10 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginVertical: 24,
+            gap: 10,
+          }}
+        >
           <View style={{ flex: 1, height: 1, backgroundColor: "#e5e7eb" }} />
           <Text style={{ color: "#9ca3af", fontSize: 13 }}>또는</Text>
           <View style={{ flex: 1, height: 1, backgroundColor: "#e5e7eb" }} />

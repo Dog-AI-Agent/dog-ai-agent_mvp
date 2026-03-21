@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import ai, auth, breeds, chat, diseases, recommendations, recipes, users
+from backend.routers import ai, auth, breeds, chat, community, diseases, recommendations, recipes, users
 from backend.routers.recommendations import lifespan
 
 app = FastAPI(
@@ -26,6 +26,7 @@ app.include_router(diseases.router, prefix="/api/v1")
 app.include_router(recommendations.router, prefix="/api/v1")
 app.include_router(recipes.router, prefix="/api/v1")
 app.include_router(chat.router, prefix="/api/v1")
+app.include_router(community.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 
 

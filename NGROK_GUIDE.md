@@ -7,11 +7,13 @@
 ## 1. ngrok 설치
 
 ### Windows
+
 1. [https://ngrok.com/download](https://ngrok.com/download) 접속
 2. Windows 버전 다운로드 후 압축 해제
 3. `ngrok.exe`를 `C:\ngrok\` 폴더에 이동 (또는 원하는 경로)
 
 ### 또는 winget으로 설치
+
 ```powershell
 winget install ngrok
 ```
@@ -53,6 +55,7 @@ C:\ngrok\ngrok.exe http 8000
 ```
 
 ### 실행 후 출력 예시:
+
 ```
 Forwarding  https://abc123-xxxx.ngrok-free.app -> http://localhost:8000
 ```
@@ -64,13 +67,15 @@ Forwarding  https://abc123-xxxx.ngrok-free.app -> http://localhost:8000
 ## 5. 팀원들 설정 방법
 
 ### Vercel 환경변수 업데이트
+
 Vercel 대시보드 → Settings → Environment Variables
 
-| Key | Value |
-|-----|-------|
+| Key           | Value                                |
+| ------------- | ------------------------------------ |
 | `BACKEND_URL` | `https://abc123-xxxx.ngrok-free.app` |
 
 ### 로컬 개발 시 `.env` 수정
+
 ```env
 # frontend/.env 또는 루트 .env
 EXPO_PUBLIC_API_URL=https://abc123-xxxx.ngrok-free.app/api/v1
@@ -81,14 +86,18 @@ EXPO_PUBLIC_API_URL=https://abc123-xxxx.ngrok-free.app/api/v1
 ## 6. ⚠️ 주의사항
 
 ### ngrok URL은 재시작할 때마다 바뀜
+
 - ngrok 무료 플랜은 터널 재시작 시 URL이 변경됨
 - URL 변경 시 팀원들에게 공유 + Vercel 환경변수 업데이트 필요
 
 ### 고정 URL 사용하려면 (유료 플랜 또는 무료 Static Domain)
+
 ngrok 무료 계정도 **Static Domain 1개** 무료 제공:
+
 1. [https://dashboard.ngrok.com/cloud-edge/domains](https://dashboard.ngrok.com/cloud-edge/domains) 접속
 2. **New Domain** → 고정 URL 생성
 3. 아래 명령어로 실행:
+
 ```powershell
 C:\ngrok\ngrok.exe http --domain=your-domain.ngrok-free.app 8000
 ```
@@ -107,6 +116,7 @@ C:\ngrok\ngrok.exe http 8001
 ```
 
 백엔드 `.env`에서 AI 서버 URL 업데이트:
+
 ```env
 AI_SERVER_URL=https://ai-서버-ngrok-url.ngrok-free.app
 ```

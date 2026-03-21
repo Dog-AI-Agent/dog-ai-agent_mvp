@@ -276,3 +276,69 @@ class ChatHistoryResponse(BaseModel):
     session_id: str
     breed_id: str
     messages: list[ChatMessageResponse] = []
+
+
+# ── Community ──
+
+class CommunityRecipeIngredient(BaseModel):
+    name: str
+    amount: str
+
+
+class CommunityRecipeData(BaseModel):
+    ingredients: list[CommunityRecipeIngredient] = []
+    steps: list[str] = []
+
+
+class CommunityPostCreate(BaseModel):
+    category: str  # recipe, general_qna, health_qna, free
+    title: str
+    content: str
+    recipe_data: Optional[CommunityRecipeData] = None
+
+
+class CommunityPostUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    recipe_data: Optional[CommunityRecipeData] = None
+
+
+class CommunityImageResponse(BaseModel):
+    id: str
+    image_url: str
+
+
+class CommunityPostResponse(BaseModel):
+    post_id: str
+    user_id: str
+    nickname: str
+    category: str
+    title: str
+    content: str
+    recipe_data: Optional[dict] = None
+    images: list[CommunityImageResponse] = []
+    view_count: int = 0
+    like_count: int = 0
+    comment_count: int = 0
+    is_liked: bool = False
+    created_at: str
+    updated_at: str
+
+
+class CommunityPostListResponse(BaseModel):
+    posts: list[CommunityPostResponse]
+    total: int
+    page: int
+    limit: int
+
+
+class CommentCreate(BaseModel):
+    content: str
+
+
+class CommentResponse(BaseModel):
+    comment_id: str
+    user_id: str
+    nickname: str
+    content: str
+    created_at: str

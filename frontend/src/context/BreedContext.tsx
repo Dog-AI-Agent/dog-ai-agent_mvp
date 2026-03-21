@@ -29,7 +29,9 @@ export const BreedProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <BreedContext.Provider value={{ breedId, breedNameKo, setBreed, clearBreed }}>
+    <BreedContext.Provider
+      value={{ breedId, breedNameKo, setBreed, clearBreed }}
+    >
       {children}
     </BreedContext.Provider>
   );
