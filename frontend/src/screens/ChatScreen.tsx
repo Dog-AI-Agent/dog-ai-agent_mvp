@@ -20,6 +20,7 @@ import {
   getChatHistory,
 } from "../api/chat";
 import ChatBubble from "../components/ChatBubble";
+import LoadingSpinner from "../components/LoadingSpinner";
 import UserHeader from "../components/UserHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Chat">;
@@ -126,8 +127,8 @@ const ChatScreen = ({ navigation, route }: Props) => {
 
   if (initializing) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#4361ee" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+        <LoadingSpinner />
       </SafeAreaView>
     );
   }

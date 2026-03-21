@@ -18,6 +18,7 @@ import type { RootStackParamList } from "../navigation/RootStack";
 import { useAuth } from "../context/AuthContext";
 import { updateMe, getAnalyses, deleteAnalyses, togglePin } from "../api/users";
 import type { AnalysisHistoryItem } from "../api/users";
+import LoadingSpinner, { clearPinnedCache } from "../components/LoadingSpinner";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MyPage">;
 type Tab = "user" | "dog";
@@ -380,6 +381,7 @@ const DogHistoryTab = () => {
   const handleTogglePin = async (item: AnalysisHistoryItem) => {
     try {
       const updated = await togglePin(item.history_id);
+      clearPinnedCache();
       setHistory((prev) =>
         prev
           .map((h) => (h.history_id === updated.history_id ? updated : h))
@@ -407,11 +409,8 @@ const DogHistoryTab = () => {
 
   if (loading) {
     return (
-      <View style={{ alignItems: "center", marginTop: 60 }}>
-        <ActivityIndicator color={PRIMARY} size="large" />
-        <Text style={{ marginTop: 12, fontSize: 14, color: "#9ca3af" }}>
-          불러오는 중...
-        </Text>
+      <View style={{ height: 300 }}>
+        <LoadingSpinner />
       </View>
     );
   }
