@@ -2,8 +2,10 @@
 Illustration Service — DALL-E 3로 강아지 카툰 일러스트 생성 + Supabase Storage 업로드
 """
 
+import io
 import logging
 import httpx
+from PIL import Image
 from openai import OpenAI
 
 from backend.config import OPENAI_API_KEY
@@ -16,10 +18,18 @@ BUCKET_NAME = "illustrations"
 
 _build_illustration_prompt = (
     lambda breed_name_en: (
-        f"A single adorable chibi-style cartoon illustration of a {breed_name_en} dog. "
-        "The dog is walking to the left, shown from the side profile view with a cheerful expression. "
-        "Soft pastel color palette, rounded shapes. "
-        "Clean vector art style, no text, no watermark, plain solid white background with nothing else."
+        # 1. 스타일 먼저 명확히 정의 (치비 + 두꺼운 아웃라인 + 벡터)
+        "Chibi-style cute cartoon dog illustration with thick black outlines, "
+        "flat vector art, clean cel-shading, soft pastel colors. "
+
+        # 2. 구도: 머리 왼쪽, 꼬리 오른쪽, 걷는 포즈 명시
+        f"A {breed_name_en} puppy walking toward the left side, "
+        "head on the left and tail on the right, full body side profile view. "
+        "Front paw slightly raised mid-step, cheerful face with big shiny eyes and small open mouth. "
+
+        # 3. 배경 및 기타 제약
+        "Pure white background, no shadow, no text, no watermark, "
+        "single character centered in frame, no other objects."
     )
 )
 
@@ -48,11 +58,16 @@ async def _generate(breed_name_en: str, user_id: str, analysis_id: str) -> str:
     image_url = response.data[0].url
     logger.info(f"[ILLUSTRATION] DALL-E 생성 완료: {image_url[:80]}...")
 
-    # 2) 이미지 다운로드
+    # 2) 이미지 다운로드 + 좌우 반전 (DALL-E가 왼쪽을 보게 생성 → 반전하여 오른쪽 방향으로)
     async with httpx.AsyncClient(timeout=30.0) as http:
         img_response = await http.get(image_url)
         img_response.raise_for_status()
-        image_bytes = img_response.content
+
+    img = Image.open(io.BytesIO(img_response.content))
+    img = img.transpose(Image.FLIP_LEFT_RIGHT)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    image_bytes = buf.getvalue()
 
     # 3) Supabase Storage 업로드
     storage_path = f"{user_id}/{analysis_id}.png"
