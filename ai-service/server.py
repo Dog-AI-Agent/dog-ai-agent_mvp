@@ -1,5 +1,5 @@
 """
-AI Server v2 — 강아지 감지 + 품종 분류 API (Port 8001)
+AI Server v2 — 강아지 감지 + 품종 분류 + 레시피 이미지 생성 API (Port 8001)
 
 Pair2 리팩터링 적용:
 - 이미지 1회만 전처리 (image_pipeline)
@@ -15,13 +15,16 @@ import sys
 import os
 import time
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 # Add breed and dog-detection modules to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'breed'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'dog-detection'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'gen-img'))
 
 from image_pipeline import preprocess_image
 from prediction_cache import (
@@ -186,6 +189,69 @@ async def cache_stats():
 async def clear_cache():
     prediction_cache.clear()
     return {"status": "cleared"}
+
+
+class RecipeImageRequest(BaseModel):
+    food_name: str
+    ingredients: str
+    recipe_steps: list[str]
+    size: Optional[str] = "1024x1024"
+    quality: Optional[str] = "standard"
+
+
+@app.post("/generate-recipe-image")
+async def generate_recipe_image(req: RecipeImageRequest):
+    """
+    레시피 정보를 받아 DALL-E 3로 완성된 요리 이미지를 생성합니다.
+
+    - food_name: 레시피 이름
+    - ingredients: 재료 (쉼표 구분)
+    - recipe_steps: 조리 단계 리스트 (마지막 단계로 플레이팅 묘사)
+    - size: 이미지 크기 (1024x1024 / 1792x1024 / 1024x1792)
+    - quality: 품질 (standard / hd)
+    """
+    try:
+        from generate_recipe_image import build_image_prompt_from_steps
+        from openai import OpenAI
+    except ImportError as e:
+        raise HTTPException(status_code=503, detail=f"이미지 생성 모듈 로딩 실패: {e}")
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY가 설정되지 않았습니다.")
+
+    valid_sizes = {"1024x1024", "1792x1024", "1024x1792"}
+    valid_qualities = {"standard", "hd"}
+    if req.size not in valid_sizes:
+        raise HTTPException(status_code=400, detail=f"size는 {valid_sizes} 중 하나여야 합니다.")
+    if req.quality not in valid_qualities:
+        raise HTTPException(status_code=400, detail=f"quality는 {valid_qualities} 중 하나여야 합니다.")
+
+    prompt = build_image_prompt_from_steps(req.food_name, req.ingredients, req.recipe_steps)
+
+    def _call_dalle():
+        client = OpenAI(api_key=api_key)
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size=req.size,
+            quality=req.quality,
+            n=1,
+        )
+        return response.data[0].url, response.data[0].revised_prompt
+
+    try:
+        image_url, revised_prompt = await asyncio.get_event_loop().run_in_executor(
+            None, _call_dalle
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"이미지 생성 실패: {str(e)}")
+
+    return {
+        "image_url": image_url,
+        "revised_prompt": revised_prompt,
+        "food_name": req.food_name,
+    }
 
 
 @app.get("/health")

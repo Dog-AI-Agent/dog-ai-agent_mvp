@@ -1,132 +1,63 @@
 """
-Generate recipe images using DALL-E 3 based on LLM recipe recommendations.
-
-Usage:
-    python generate_recipe_image.py --food "눈 건강 계란 노른자 볼" --ingredients "계란 노른자, 호박, 브로콜리, 당근, 블루베리"
-    python generate_recipe_image.py --food "소고기 병아리콩 스튜" --ingredients "소고기, 병아리콩"
-    python generate_recipe_image.py --food "사골 육수 시금치 현미 볼" --ingredients "사골 육수, 시금치, 현미" --breed "골든 리트리버"
-
-Requires:
-    pip install openai python-dotenv Pillow requests
-    .env file with OPENAI_API_KEY=sk-...
+DALL-E 3 기반 반려견 레시피 이미지 생성 모듈
 """
 
 import os
-import sys
-import argparse
 import requests
 from pathlib import Path
 from datetime import datetime
-from dotenv import load_dotenv
-from openai import OpenAI
 
-# Paths
-BASE_DIR = Path(__file__).resolve().parent
-ENV_PATH = BASE_DIR.parent.parent / ".env"
-OUTPUT_DIR = BASE_DIR / "output"
+OUTPUT_DIR = Path(__file__).resolve().parent / "output"
 
 
-def load_env():
-    load_dotenv(ENV_PATH)
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        print(f"[ERROR] OPENAI_API_KEY not found. Please set it in {ENV_PATH}")
-        sys.exit(1)
-    return api_key
+def build_image_prompt_from_steps(food_name: str, ingredients: str, recipe_steps: list) -> str:
+    """
+    recipe_steps 리스트를 기반으로 완성된 요리 이미지 DALL-E 프롬프트를 생성합니다.
+    - 마지막 단계로 최종 플레이팅 묘사
+    - 전체 단계 키워드로 조리 방법 파악
+    """
+    final_step = recipe_steps[-1] if recipe_steps else ""
 
+    all_steps = " ".join(recipe_steps)
+    methods = []
+    if any(k in all_steps for k in ["삶", "익힌", "데친"]):
+        methods.append("cooked")
+    if any(k in all_steps for k in ["찐", "쪄"]):
+        methods.append("steamed")
+    if any(k in all_steps for k in ["으깬", "으깨"]):
+        methods.append("mashed")
+    if any(k in all_steps for k in ["죽", "끓여"]):
+        methods.append("simmered into a soft porridge")
+    if any(k in all_steps for k in ["섞", "올려", "뿌려"]):
+        methods.append("mixed and plated")
+    cooking_desc = ", ".join(methods) if methods else "cooked"
 
-def build_image_prompt(food_name, ingredients, breed=None, disease=None):
-    """Build a DALL-E prompt for the recipe image."""
-    prompt = (
-        f"A real photograph of a homemade dog food dish. "
-        f"Ingredients: {ingredients}. "
+    return (
+        f"A real photograph of a finished homemade dog food dish called '{food_name}'. "
+        f"The dish is made with {ingredients}, prepared as follows: {final_step} "
+        f"The ingredients are {cooking_desc}. "
         f"Served in a simple white ceramic bowl on a pure white background. "
-        f"Only the bowl and food, nothing else in the frame. No animals, no people, no props. "
-        f"The ingredients look fresh, moist, and cooked. Realistic food textures. "
+        f"Only the bowl with the finished dish, nothing else — no loose ingredients, no garnish outside the bowl, no props, no animals, no people. "
+        f"Everything must be inside the bowl only. "
+        f"Realistic food textures, vibrant natural colors. "
         f"Bright, even studio lighting. Slight overhead angle. "
         f"Clean, minimal commercial food photography. "
         f"No text, no labels, no illustrations, no cartoon style."
     )
 
-    return prompt
 
-
-def generate_image(client, prompt, size="1024x1024", quality="standard"):
-    """Call DALL-E 3 to generate an image."""
-    print(f"\n[INFO] Generating image with DALL-E 3...")
-    print(f"[INFO] Prompt: {prompt[:100]}...")
-
-    response = client.images.generate(
-        model="dall-e-3",
-        prompt=prompt,
-        size=size,
-        quality=quality,
-        n=1,
-    )
-
-    image_url = response.data[0].url
-    revised_prompt = response.data[0].revised_prompt
-    return image_url, revised_prompt
-
-
-def save_image(image_url, food_name):
-    """Download and save the generated image."""
+def save_image(image_url: str, food_name: str) -> Path:
+    """생성된 이미지 URL을 다운로드하여 output 폴더에 저장합니다."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Create filename from food name
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_name = food_name.replace(" ", "_")[:30]
-    filename = f"{safe_name}_{timestamp}.png"
-    filepath = OUTPUT_DIR / filename
+    filepath = OUTPUT_DIR / f"{safe_name}_{timestamp}.png"
 
-    print(f"[INFO] Downloading image...")
     response = requests.get(image_url, timeout=30)
     response.raise_for_status()
 
     with open(filepath, "wb") as f:
         f.write(response.content)
 
-    print(f"[INFO] Saved: {filepath}")
     return filepath
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Generate recipe images using DALL-E 3")
-    parser.add_argument("--food", type=str, required=True, help="Recipe name in Korean")
-    parser.add_argument("--ingredients", type=str, required=True, help="Comma-separated ingredients")
-    parser.add_argument("--breed", type=str, default=None, help="Dog breed name (optional)")
-    parser.add_argument("--disease", type=str, default=None, help="Disease name (optional)")
-    parser.add_argument("--size", type=str, default="1024x1024",
-                        choices=["1024x1024", "1792x1024", "1024x1792"],
-                        help="Image size (default: 1024x1024)")
-    parser.add_argument("--quality", type=str, default="standard",
-                        choices=["standard", "hd"],
-                        help="Image quality (default: standard)")
-    args = parser.parse_args()
-
-    # Setup
-    api_key = load_env()
-    client = OpenAI(api_key=api_key)
-
-    print("=" * 60)
-    print("  반려견 레시피 이미지 생성기 (DALL-E 3)")
-    print("=" * 60)
-    print(f"\n레시피: {args.food}")
-    print(f"재료: {args.ingredients}")
-
-    # Build prompt and generate
-    prompt = build_image_prompt(args.food, args.ingredients)
-    image_url, revised_prompt = generate_image(client, prompt, args.size, args.quality)
-
-    print(f"\n[DALL-E revised prompt]\n{revised_prompt}")
-
-    # Save image
-    filepath = save_image(image_url, args.food)
-
-    print(f"\n{'=' * 60}")
-    print(f"완료! 이미지가 저장되었습니다: {filepath}")
-    print(f"{'=' * 60}")
-
-
-if __name__ == "__main__":
-    main()
