@@ -11,6 +11,7 @@ ai-service/breed/trained_models/*
 data/dog-disease/
 ai-service/dog-detection/not_dog
 ai-service/dog-detection/yes_dog
+ai-service/breed/experiments
 __pycache__
 .env
 .env
