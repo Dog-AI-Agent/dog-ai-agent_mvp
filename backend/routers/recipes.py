@@ -1,17 +1,23 @@
 import re
-from fastapi import APIRouter, HTTPException, Query
+import asyncio
+import time
+import logging
 from typing import Optional
 
+import httpx
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from fastapi.responses import StreamingResponse, JSONResponse
+
+from backend.config import AI_SERVER_URL
 from backend.database import get_supabase
 from backend.models.schemas import (
     RecipeDetailResponse,
     RecipeIngredient,
     RecipeStep,
 )
-import time
-import asyncio
-from fastapi.responses import StreamingResponse, JSONResponse
 from backend.services.llm_service import generate_recipe_summary, generate_recipe_summary_stream
+
+logger = logging.getLogger("recipes")
 
 # ── 인메모리 요약 캐시 (recipe_id → summary 텍스트) ──
 # 프롬프트 변경 시 서버 재시작하면 자동 카시 초기화
@@ -33,6 +39,33 @@ def _cache_set(recipe_id: str, summary: str):
     _summary_cache_ts[recipe_id] = time.time()
 
 router = APIRouter(prefix="/recipes", tags=["Recipes"])
+
+
+async def _generate_and_save_recipe_image(
+    recipe_id: str,
+    food_name: str,
+    ingredients: list[str],
+    steps: list[str],
+):
+    """백그라운드에서 레시피 이미지 생성 후 DB에 저장."""
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.post(
+                f"{AI_SERVER_URL}/generate-recipe-image",
+                json={
+                    "food_name": food_name,
+                    "ingredients": ", ".join(ingredients),
+                    "recipe_steps": steps,
+                },
+            )
+            resp.raise_for_status()
+            image_url = resp.json().get("image_url")
+
+        if image_url:
+            get_supabase().table("recipes").update({"image_url": image_url}).eq("id", recipe_id).execute()
+            logger.info(f"[recipe image] saved for {recipe_id}")
+    except Exception as e:
+        logger.warning(f"[recipe image] generation failed for {recipe_id}: {e}")
 
 
 @router.get("/{recipe_id}/stream")
@@ -127,6 +160,7 @@ async def stream_recipe_summary(
 @router.get("/{recipe_id}", response_model=RecipeDetailResponse)
 async def get_recipe(
     recipe_id: str,
+    background_tasks: BackgroundTasks,
     breed_id: Optional[str] = Query(None, description="품종 ID (LLM 안내 생성용)"),
 ):
     db = get_supabase()
@@ -275,6 +309,17 @@ async def get_recipe(
             if found and llm_cal_total > 0:
                 calories_by_size = llm_cal_total
 
+    # ── 이미지 없으면 백그라운드에서 생성 (첫 조회 시 1회만) ──
+    image_url = recipe.get("image_url")
+    if not image_url and steps:
+        background_tasks.add_task(
+            _generate_and_save_recipe_image,
+            recipe_id=recipe["id"],
+            food_name=title,
+            ingredients=[ing.name for ing in ingredients],
+            steps=[s.instruction for s in steps],
+        )
+
     return RecipeDetailResponse(
         recipe_id=recipe["id"],
         title=title,
@@ -283,7 +328,7 @@ async def get_recipe(
         cook_time_min=recipe.get("cook_time_min"),
         difficulty=recipe.get("difficulty"),
         servings=recipe.get("servings", 1),
-        image_url=recipe.get("image_url"),
+        image_url=image_url,
         source_name=recipe.get("source_name"),
         source_url=recipe.get("source_url"),
         ingredients=ingredients,
