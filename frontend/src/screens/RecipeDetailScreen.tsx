@@ -9,7 +9,7 @@ import { View, Text, ScrollView, Pressable, LayoutAnimation, Platform, UIManager
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
-import { getRecipe } from "../api/recipes";
+import { getRecipe, generateRecipeImage } from "../api/recipes";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorState from "../components/ErrorState";
 import MarkdownRenderer from "../components/MarkdownRenderer";
@@ -265,6 +265,7 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
   const [recipe, setRecipe] = useState<RecipeDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [imageGenerating, setImageGenerating] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -362,13 +363,39 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
               backgroundColor: "#f3f4f6",
               alignItems: "center",
               justifyContent: "center",
-              gap: 8,
+              gap: 12,
             }}
           >
             <Text style={{ fontSize: 36 }}>🍳</Text>
-            <Text style={{ fontSize: 13, color: "#9ca3af" }}>
-              이미지 준비 중...
-            </Text>
+            {imageGenerating ? (
+              <>
+                <LoadingSpinner />
+                <Text style={{ fontSize: 13, color: "#9ca3af" }}>
+                  이미지 생성 중...
+                </Text>
+              </>
+            ) : (
+              <Pressable
+                onPress={() => {
+                  setImageGenerating(true);
+                  generateRecipeImage(recipe.recipe_id)
+                    .then(({ image_url }) =>
+                      setRecipe((prev) => prev ? { ...prev, image_url } : prev)
+                    )
+                    .finally(() => setImageGenerating(false));
+                }}
+                style={{
+                  backgroundColor: "#f97316",
+                  borderRadius: 12,
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
+                  레시피 이미지 생성
+                </Text>
+              </Pressable>
+            )}
           </View>
         )}
 
