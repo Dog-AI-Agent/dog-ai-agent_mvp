@@ -5,7 +5,7 @@
 // - 하단 버튼 sticky 고정
 // ============================================================
 import { useEffect, useState, useRef } from "react";
-import { View, Text, ScrollView, Pressable, LayoutAnimation, Platform, UIManager } from "react-native";
+import { View, Text, ScrollView, Pressable, LayoutAnimation, Platform, UIManager, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootStack";
@@ -332,7 +332,7 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* ① 제목 + 유전병 태그 */}
+        {/* ① 제목 */}
         <View style={{ gap: 8, alignItems: "center" }}>
           <Text
             style={{
@@ -346,7 +346,33 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
           </Text>
         </View>
 
-        {/* ② 메타 정보 */}
+        {/* ② 레시피 이미지 */}
+        {recipe.image_url ? (
+          <Image
+            source={{ uri: recipe.image_url }}
+            style={{ width: "100%", height: 220, borderRadius: 16 }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View
+            style={{
+              width: "100%",
+              height: 220,
+              borderRadius: 16,
+              backgroundColor: "#f3f4f6",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            <Text style={{ fontSize: 36 }}>🍳</Text>
+            <Text style={{ fontSize: 13, color: "#9ca3af" }}>
+              이미지 준비 중...
+            </Text>
+          </View>
+        )}
+
+        {/* ③ 메타 정보 */}
         <View style={{ flexDirection: "row", gap: 8 }}>
           <MetaItem
             icon="⏱"
@@ -372,7 +398,7 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
           <MetaItem icon="🍽" label="인분" value={`${recipe.servings}인분`} />
         </View>
 
-        {/* ③ 재료 (접기/펼치기, 중복 제거) */}
+        {/* ④ 재료 (접기/펼치기, 중복 제거) */}
         {uniqueIngredients.length > 0 && (
           <CollapsibleSection title="재료" defaultOpen={true}>
             <View style={{ gap: 6 }}>
@@ -434,7 +460,7 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
           </CollapsibleSection>
         )}
 
-        {/* ④ 조리 순서 (접기/펼치기) */}
+        {/* ⑤ 조리 순서 (접기/펼치기) */}
         {recipe.steps.length > 0 && (
           <CollapsibleSection title="조리 순서" defaultOpen={true}>
             <View style={{ gap: 8 }}>
@@ -491,7 +517,7 @@ const RecipeDetailScreen = ({ navigation, route }: Props) => {
           </CollapsibleSection>
         )}
 
-        {/* ⑤ AI 가이드 - 스트리밍 */}
+        {/* ⑥ AI 가이드 - 스트리밍 */}
         <StreamingAiGuide
           recipeId={recipeId}
           breedId={breedId}
