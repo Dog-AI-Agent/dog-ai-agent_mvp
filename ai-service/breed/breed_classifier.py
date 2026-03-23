@@ -1,5 +1,5 @@
 """
-Breed Classifier — tf_keras custom model, async non-blocking.
+Breed Classifier — EfficientNetB0 (Keras 3), async non-blocking.
 Pair2 리팩터링: run_in_executor + module-level load + warmup
 """
 from __future__ import annotations
@@ -9,26 +9,19 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import keras
 import numpy as np
-import tf_keras
 
 if TYPE_CHECKING:
     from image_pipeline import PreprocessedImage
     from prediction_cache import ClassificationResult
 
 _DIR = Path(__file__).parent
-MODEL_PATH = str(_DIR / "trained_models" / "model_1.h5")
+MODEL_PATH = str(_DIR / "trained_models" / "efficientnetb0_phase2.keras")
 BREED_DATA_FILE = str(_DIR / "breed_data.json")
 INPUT_SIZE = (224, 224)
 MIXED_THRESHOLD = 0.50
 TOP_K = 3
-
-
-# ── Custom layer fix ──
-class FixedDepthwiseConv2D(tf_keras.layers.DepthwiseConv2D):
-    def __init__(self, **kwargs):
-        kwargs.pop('groups', None)
-        super().__init__(**kwargs)
 
 
 # ── Module-level load (한 번만) ──
@@ -40,10 +33,7 @@ def _load_resources():
     global _model, _breed_data
     if _model is None:
         print("모델 로딩 중...")
-        _model = tf_keras.models.load_model(
-            MODEL_PATH,
-            custom_objects={'DepthwiseConv2D': FixedDepthwiseConv2D}
-        )
+        _model = keras.models.load_model(MODEL_PATH)
         print("모델 로딩 완료.")
     if _breed_data is None:
         with open(BREED_DATA_FILE, 'r', encoding='utf-8') as f:
@@ -63,8 +53,8 @@ async def predict_breed(img: "PreprocessedImage") -> "ClassificationResult":
     model, breed_data = _load_resources()
     loop = asyncio.get_running_loop()
 
-    # [0,255] → [0,1] 정규화 (breed model용)
-    batch = img.preprocessed_array.copy() / 255.0
+    # 모델 내부에 rescaling 레이어 포함 → [0,255] 그대로 전달
+    batch = img.preprocessed_array.copy().astype(np.float32)
     preds = await loop.run_in_executor(None, _predict_sync, batch)
 
     top_indices = np.argsort(preds[0])[::-1][:TOP_K]
@@ -110,7 +100,7 @@ async def warmup() -> None:
 def predict(pil_image, threshold=MIXED_THRESHOLD):
     model, breed_data = _load_resources()
     img = pil_image.convert('RGB').resize(INPUT_SIZE)
-    arr = np.array(img, dtype=np.float32) / 255.0
+    arr = np.array(img, dtype=np.float32)
     arr = np.expand_dims(arr, axis=0)
 
     preds = model.predict(arr, verbose=0)[0]
