@@ -89,7 +89,7 @@ def generate_gradcam_image(pil_image: Image.Image) -> str:
         results.append({"rank": rank + 1, "breed": breed_name, "prob": prob, "cx": cx, "cy": cy})
 
     # 이미지 렌더링
-    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     ax.imshow(np.array(pil_image.convert('RGB')))
     ax.axis('off')
 
@@ -97,28 +97,28 @@ def generate_gradcam_image(pil_image: Image.Image) -> str:
         cx, cy = r["cx"], r["cy"]
         color = [c / 255 for c in BOX_COLORS[r["rank"] - 1]]
 
-        # 확률 비례 마커 크기 (10% → 20, 100% → 50)
-        markersize = 20 + r["prob"] * 0.3
+        # 확률 비례 마커 크기 (10% → 30, 100% → 65)
+        markersize = 30 + r["prob"] * 0.35
         ax.plot(cx, cy, 'o', markersize=markersize, color=color,
-                markeredgecolor='white', markeredgewidth=2.5,
-                alpha=0.6, zorder=5)
+                markeredgecolor='white', markeredgewidth=3,
+                alpha=0.65, zorder=5)
         ax.text(cx, cy, str(r["rank"]),
-                color='white', fontsize=13, fontweight='bold',
+                color='white', fontsize=24, fontweight='bold',
                 ha='center', va='center', zorder=6)
 
         # 라벨 (마커 오른쪽 또는 아래로 오프셋)
-        offset_x = 18
-        offset_y = -18 + (r["rank"] - 1) * 30
+        offset_x = 30
+        offset_y = -30 + (r["rank"] - 1) * 50
         txt = ax.annotate(
             f"Top{r['rank']}: {r['breed']} ({r['prob']:.1f}%)",
             xy=(cx, cy), xytext=(cx + offset_x, cy + offset_y),
-            color='white', fontsize=11, fontweight='bold',
-            bbox=dict(facecolor=color, alpha=0.85, pad=3, linewidth=0),
-            arrowprops=dict(arrowstyle='->', color=color, lw=2),
+            color='white', fontsize=22, fontweight='bold',
+            bbox=dict(facecolor=color, alpha=0.85, pad=6, linewidth=0),
+            arrowprops=dict(arrowstyle='->', color=color, lw=3),
             zorder=7
         )
         txt.set_path_effects([
-            pe.Stroke(linewidth=2, foreground='black'),
+            pe.Stroke(linewidth=3, foreground='black'),
             pe.Normal()
         ])
 
