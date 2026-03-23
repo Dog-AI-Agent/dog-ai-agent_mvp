@@ -93,26 +93,53 @@ def generate_gradcam_image(pil_image: Image.Image) -> str:
     ax.imshow(np.array(pil_image.convert('RGB')))
     ax.axis('off')
 
+    # 라벨 위치 겹침 방지: y 기준 정렬 후 최소 간격 보장
+    MIN_GAP = 90  # 라벨 간 최소 픽셀 간격
+    label_positions = []
     for r in results:
-        cx, cy = r["cx"], r["cy"]
+        label_positions.append([r["cx"] + 30, r["cy"]])
+
+    MARGIN = 30  # 이미지 경계 안쪽 여백
+    orig_w, orig_h = pil_image.width, pil_image.height
+
+    # y 좌표 겹침 해소 (반복적으로 밀어냄)
+    for _ in range(30):
+        for i in range(len(label_positions)):
+            for j in range(i + 1, len(label_positions)):
+                dy = label_positions[j][1] - label_positions[i][1]
+                if abs(dy) < MIN_GAP:
+                    push = (MIN_GAP - abs(dy)) / 2
+                    label_positions[i][1] -= push
+                    label_positions[j][1] += push
+
+    # 이미지 경계 안으로 클램핑
+    for pos in label_positions:
+        pos[0] = max(MARGIN, min(pos[0], orig_w - MARGIN))
+        pos[1] = max(MARGIN, min(pos[1], orig_h - MARGIN))
+
+    for r, (lx, ly) in zip(results, label_positions):
+        # 마커 동그라미도 이미지 경계 안으로 클램핑
+        cx = max(MARGIN, min(r["cx"], orig_w - MARGIN))
+        cy = max(MARGIN, min(r["cy"], orig_h - MARGIN))
         color = [c / 255 for c in BOX_COLORS[r["rank"] - 1]]
 
-        # 확률 비례 마커 크기 (10% → 30, 100% → 65)
-        markersize = 30 + r["prob"] * 0.35
+        # 확률 비례 마커/글자 크기 (1% → 최소, 100% → 최대)
+        prob_ratio = r["prob"] / 100.0
+        markersize = 20 + prob_ratio * 45       # 20 ~ 65
+        marker_fontsize = int(14 + prob_ratio * 14)   # 14 ~ 28
+        label_fontsize = int(13 + prob_ratio * 12)    # 13 ~ 25
+
         ax.plot(cx, cy, 'o', markersize=markersize, color=color,
                 markeredgecolor='white', markeredgewidth=3,
                 alpha=0.65, zorder=5)
         ax.text(cx, cy, str(r["rank"]),
-                color='white', fontsize=24, fontweight='bold',
+                color='white', fontsize=marker_fontsize, fontweight='bold',
                 ha='center', va='center', zorder=6)
 
-        # 라벨 (마커 오른쪽 또는 아래로 오프셋)
-        offset_x = 30
-        offset_y = -30 + (r["rank"] - 1) * 50
         txt = ax.annotate(
             f"Top{r['rank']}: {r['breed']} ({r['prob']:.1f}%)",
-            xy=(cx, cy), xytext=(cx + offset_x, cy + offset_y),
-            color='white', fontsize=22, fontweight='bold',
+            xy=(cx, cy), xytext=(lx, ly),
+            color='white', fontsize=label_fontsize, fontweight='bold',
             bbox=dict(facecolor=color, alpha=0.85, pad=6, linewidth=0),
             arrowprops=dict(arrowstyle='->', color=color, lw=3),
             zorder=7
