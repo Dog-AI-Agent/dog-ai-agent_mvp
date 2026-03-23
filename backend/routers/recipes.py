@@ -5,7 +5,7 @@ import logging
 from typing import Optional
 
 import httpx
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse, JSONResponse
 
 from backend.config import AI_SERVER_URL
@@ -160,7 +160,6 @@ async def stream_recipe_summary(
 @router.get("/{recipe_id}", response_model=RecipeDetailResponse)
 async def get_recipe(
     recipe_id: str,
-    background_tasks: BackgroundTasks,
     breed_id: Optional[str] = Query(None, description="품종 ID (LLM 안내 생성용)"),
 ):
     db = get_supabase()
@@ -309,16 +308,7 @@ async def get_recipe(
             if found and llm_cal_total > 0:
                 calories_by_size = llm_cal_total
 
-    # ── 이미지 없으면 백그라운드에서 생성 (첫 조회 시 1회만) ──
     image_url = recipe.get("image_url")
-    if not image_url and steps:
-        background_tasks.add_task(
-            _generate_and_save_recipe_image,
-            recipe_id=recipe["id"],
-            food_name=title,
-            ingredients=[ing.name for ing in ingredients],
-            steps=[s.instruction for s in steps],
-        )
 
     return RecipeDetailResponse(
         recipe_id=recipe["id"],
@@ -336,3 +326,38 @@ async def get_recipe(
         target_diseases=target_diseases,
         summary=summary,
     )
+
+
+@router.post("/{recipe_id}/generate-image")
+async def generate_recipe_image_endpoint(recipe_id: str):
+    """레시피 이미지를 생성하고 DB에 저장 후 image_url 반환."""
+    db = get_supabase()
+
+    recipe_result = db.table("recipes").select("*").eq("id", recipe_id).execute()
+    if not recipe_result.data:
+        raise HTTPException(status_code=404, detail="RECIPE_NOT_FOUND")
+
+    recipe = recipe_result.data[0]
+    title = recipe.get("title") or recipe.get("title_ko") or recipe.get("title_en") or ""
+
+    ing_result = db.table("recipe_ingredients").select("name").eq("recipe_id", recipe_id).execute()
+    ingredients = [r["name"] for r in ing_result.data]
+
+    steps_result = (
+        db.table("recipe_steps").select("*").eq("recipe_id", recipe_id).order("step_number").execute()
+    )
+    steps = [r.get("instruction") or r.get("description") or "" for r in steps_result.data]
+
+    await _generate_and_save_recipe_image(
+        recipe_id=recipe_id,
+        food_name=title,
+        ingredients=ingredients,
+        steps=steps,
+    )
+
+    updated = db.table("recipes").select("image_url").eq("id", recipe_id).execute()
+    image_url = updated.data[0].get("image_url") if updated.data else None
+    if not image_url:
+        raise HTTPException(status_code=500, detail="IMAGE_GENERATION_FAILED")
+
+    return {"image_url": image_url}
