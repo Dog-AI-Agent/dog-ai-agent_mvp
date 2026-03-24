@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import tensorflow as tf
-from tf_keras.applications.mobilenet_v2 import preprocess_input
+from keras.applications.mobilenet_v2 import preprocess_input
 
 if TYPE_CHECKING:
     from image_pipeline import PreprocessedImage
