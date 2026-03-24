@@ -1,5 +1,5 @@
-tensorflow>=2.10.0,<2.16.0
-tf_keras>=2.10.0
+tensorflow>=2.16.0
+tf_keras>=2.16.0
 Pillow>=10.0.0
 numpy>=1.23.0
 fastapi>=0.109.0
